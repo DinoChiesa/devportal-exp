@@ -50,19 +50,13 @@
                 }
               ]
             },
-            "private": {
+            "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.private.ts"
-                }
-              ]
+              "namedChunks": true
             },
-            "development": {
+            "dev-explicit": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
