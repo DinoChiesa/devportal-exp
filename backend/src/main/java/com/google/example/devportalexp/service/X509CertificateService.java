@@ -18,8 +18,6 @@ package com.google.example.devportalexp.service;
 import com.google.example.devportalexp.App;
 import com.google.example.devportalexp.AppUtils;
 import com.google.example.devportalexp.KeyUtility;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +58,6 @@ public class X509CertificateService {
   private static X509CertificateService instance;
 
   private static final String CERT_SIGNATURE_ALGORITHM = "SHA256withRSA";
-  private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
   private PrivateKey signingPrivateKey;
   private X509Certificate issuerCertificate;
@@ -78,15 +75,25 @@ public class X509CertificateService {
 
   private X509CertificateService() {
     try {
+      // Find the certificate file name matching the pattern
+      String certResourceName = AppUtils.findResourceNameByPattern("keys/issuer-certificate-*.pem");
+      if (certResourceName == null) {
+          throw new IOException("Issuer certificate file not found for pattern keys/issuer-certificate-*.pem");
+      }
       String certPemString =
           new String(
-              App.getResourceAsStream("keys/issuer-cert.pem").readAllBytes(),
+              App.getResourceAsStream(certResourceName).readAllBytes(),
               StandardCharsets.UTF_8);
       issuerCertificate = KeyUtility.decodeCertificate(certPemString);
 
+      // Find the private key file name matching the pattern
+      String privateKeyResourceName = AppUtils.findResourceNameByPattern("keys/issuer-rsa-private-key-*.pem");
+       if (privateKeyResourceName == null) {
+          throw new IOException("Issuer private key file not found for pattern keys/issuer-rsa-private-key-*.pem");
+      }
       String privateKeyPemString =
           new String(
-              App.getResourceAsStream("keys/issuer-rsa-privatekey.pem").readAllBytes(),
+              App.getResourceAsStream(privateKeyResourceName).readAllBytes(),
               StandardCharsets.UTF_8);
       signingPrivateKey = KeyUtility.decodePrivateKey(privateKeyPemString, null).getPrivate();
     } catch (java.lang.Exception exc1) {
