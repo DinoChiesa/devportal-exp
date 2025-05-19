@@ -252,10 +252,10 @@ public class App {
                             // Backend!\"}"));
 
                             get("/apiproducts", apigee::getAllApiProducts);
-                            get("/myapps/{appname}", apigee::getDeveloperAppDetails);
-                            get("/myapps", apigee::getDeveloperApps);
-                            post("/myapps", apigee::createDeveloperApp);
-                            delete("/myapps/{appname}", apigee::deleteDeveloperApp);
+                            get("/me/apps/{appname}", apigee::getDeveloperAppDetails);
+                            get("/me/apps", apigee::getDeveloperApps);
+                            post("/me/apps", apigee::createDeveloperApp);
+                            delete("/me/apps/{appname}", apigee::deleteDeveloperApp);
                             get("/me", apigee::getDeveloperDetails);
                             post("/registerSelfAsDeveloper", apigee::createNewDeveloper);
                             // post("/me/attributes", apigee::updateDeveloperAttributes);

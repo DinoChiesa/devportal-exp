@@ -272,17 +272,17 @@ public class ApigeeController {
 
   /** GET /api/apiproducts */
   public void getAllApiProducts(final Context ctx) {
-    System.out.println("GET /apiproducts");
+    System.out.println("GET /api/apiproducts");
     @SuppressWarnings("unchecked")
     List<ApiProduct> apiProducts = (List<ApiProduct>) CacheService.getInstance().get("apiproducts");
     ctx.json((apiProducts != null) ? apiProducts : Collections.emptyList());
   }
 
-  /** GET /api/myapps */
+  /** GET /api/me/apps */
   public void getDeveloperApps(final Context ctx)
       throws IOException, InterruptedException, URISyntaxException {
     // Session is valid, add user info to context if needed
-    System.out.println("GET /myapps");
+    System.out.println("GET /api/me/apps");
     String devEmail = ctx.attribute("userEmail");
     Map<String, Object> devResponse = apigeeGet("/developers/" + devEmail);
     @SuppressWarnings("unchecked")
@@ -290,7 +290,7 @@ public class ApigeeController {
     ctx.json((appList != null) ? appList : Collections.emptyList());
   }
 
-  /** GET /api/myapps/{appname} */
+  /** GET /api/me/apps/{appname} */
   public void getDeveloperAppDetails(final Context ctx)
       throws IOException, InterruptedException, URISyntaxException {
     String appName = ctx.pathParam("appname");
@@ -390,7 +390,7 @@ public class ApigeeController {
     return Optional.of(minExpirySeconds); // Return calculated minimum expiry
   }
 
-  /** POST /api/myapps */
+  /** POST /api/me/apps */
   public void createDeveloperApp(final Context ctx)
       throws IOException, InterruptedException, URISyntaxException {
     String devEmail = ctx.attribute("userEmail");
@@ -962,7 +962,7 @@ public class ApigeeController {
     return zonedDateTime.format(formatter);
   }
 
-  /** DELETE /api/myapps/{appname} */
+  /** DELETE /api/me/apps/{appname} */
   public void deleteDeveloperApp(final Context ctx)
       throws IOException, InterruptedException, URISyntaxException {
     String appName = ctx.pathParam("appname");
@@ -979,7 +979,7 @@ public class ApigeeController {
       return;
     }
 
-    System.out.printf("DELETE /myapps/%s for developer %s\n", appName, devEmail);
+    System.out.printf("DELETE /api/me/apps/%s for developer %s\n", appName, devEmail);
 
     try {
       String path = String.format("/developers/%s/apps/%s", devEmail, appName);

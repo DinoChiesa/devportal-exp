@@ -66,7 +66,7 @@ export class ApiService {
 
     // Cache is invalid or doesn't exist, create new observable
     console.log(`ApiService: > getDeveloperApps - Cache invalid or missing. Creating new observable. Timestamp: ${this.developerAppsCacheTimestamp}, Now: ${now}`);
-    this.developerAppsCache$ = this.http.get<string[]>(`${this.apiUrl}/myapps`, { withCredentials: true }).pipe(
+    this.developerAppsCache$ = this.http.get<string[]>(`${this.apiUrl}/me/apps`, { withCredentials: true }).pipe(
       tap(() => {
         console.log('ApiService: Fetched fresh developer app names from backend.');
         this.developerAppsCacheTimestamp = Date.now(); // Update timestamp on successful fetch
@@ -111,7 +111,7 @@ export class ApiService {
 
     // Cache is invalid or doesn't exist for this app
     console.log(`ApiService: > getDeveloperAppDetails - Cache invalid or missing for app: ${appName}. Creating new observable.`);
-    const detail$ = this.http.get<DeveloperApp>(`${this.apiUrl}/myapps/${appName}`, { withCredentials: true }).pipe(
+    const detail$ = this.http.get<DeveloperApp>(`${this.apiUrl}/me/apps/${appName}`, { withCredentials: true }).pipe(
       tap(() => {
         console.log(`ApiService: Fetched fresh details for app ${appName} from backend.`);
         // Update timestamp within the map entry upon successful fetch
@@ -144,7 +144,7 @@ export class ApiService {
   createDeveloperApp(appName: string, selectedProducts: string[]): Observable<DeveloperApp> {
     console.log(`ApiService: > createDeveloperApp, name: ${appName}, products: ${selectedProducts.join(', ')}`);
     const payload = { name: appName, apiProducts: selectedProducts };
-    return this.http.post<DeveloperApp>(`${this.apiUrl}/myapps`, payload, { withCredentials: true }).pipe(
+    return this.http.post<DeveloperApp>(`${this.apiUrl}/me/apps`, payload, { withCredentials: true }).pipe(
       tap(newApp => {
          console.log('ApiService: App created:', newApp);
          this.clearDeveloperAppsCache(); // Invalidate cache after creating an app
@@ -163,7 +163,7 @@ export class ApiService {
    */
   deleteDeveloperApp(appName: string): Observable<any> {
     console.log(`ApiService: > deleteDeveloperApp, appName: ${appName}`);
-    return this.http.delete<any>(`${this.apiUrl}/myapps/${appName}`, { withCredentials: true }).pipe(
+    return this.http.delete<any>(`${this.apiUrl}/me/apps/${appName}`, { withCredentials: true }).pipe(
       tap(() => {
         console.log(`ApiService: App "${appName}" deleted successfully.`);
         this.clearDeveloperAppsCache(); // Invalidate cache after deleting an app
