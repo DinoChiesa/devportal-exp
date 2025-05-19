@@ -119,8 +119,8 @@ public class AppUtils {
   }
 
   /**
-   * return the number of days from the current date to the same date next year. Eg, when today is
-   * June 1st, the result should be 365, if NEXT year is a leap year, and 365 otherwise.
+   * Return the number of days from the current date to the same date next year. Eg, when today is
+   * June 1st, the result will be 366 if NEXT year is a leap year, and 365 otherwise.
    *
    * <p>For the edge case: If the current date is Feb 29th, `today.plusYears(1)` will result in Feb
    * 28th of the next year, and the duration will correctly be 365 days.

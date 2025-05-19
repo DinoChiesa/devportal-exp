@@ -275,7 +275,7 @@ public class ApigeeController {
     System.out.println("GET /apiproducts");
     @SuppressWarnings("unchecked")
     List<ApiProduct> apiProducts = (List<ApiProduct>) CacheService.getInstance().get("apiproducts");
-    ctx.json((apiProducts != null) ? apiProducts : Collections.emptyMap());
+    ctx.json((apiProducts != null) ? apiProducts : Collections.emptyList());
   }
 
   /** GET /api/myapps */
@@ -287,8 +287,7 @@ public class ApigeeController {
     Map<String, Object> devResponse = apigeeGet("/developers/" + devEmail);
     @SuppressWarnings("unchecked")
     List<String> appList = (List<String>) devResponse.get("apps");
-    // the list may be empty
-    ctx.json((appList != null) ? appList : Collections.emptyMap());
+    ctx.json((appList != null) ? appList : Collections.emptyList());
   }
 
   /** GET /api/myapps/{appname} */
@@ -694,7 +693,7 @@ public class ApigeeController {
               "partner-name",
               "value",
               String.format("CymbalPartner %04d LLC", (new Random()).nextInt(10000))));
-      Map<String, Object> updatedAttrs = apigeePost(uri, Map.of("attribute", attrlist));
+      apigeePost(uri, Map.of("attribute", attrlist));
       // --------------------------------------------
       ctx.status(201).json(responsePayload);
     } catch (Exception e) {
@@ -845,7 +844,7 @@ public class ApigeeController {
       String identifier = String.format("cert-%s", nowAsYyyyMmDdHHmmss());
       attrlist.add(Map.of("name", identifier, "value", fingerprint));
       System.out.printf("registerCertificate updating dev attrs...\n");
-      Map<String, Object> updatedAttrs = apigeePost(uri, Map.of("attribute", attrlist));
+      apigeePost(uri, Map.of("attribute", attrlist));
       System.out.printf("registerCertificate updating dev attrs...DONE.\n");
 
       Map<String, Object> response =
@@ -941,7 +940,7 @@ public class ApigeeController {
                   })
               .collect(Collectors.toList());
 
-      Map<String, Object> updatedAttrs = apigeePost(uri, Map.of("attribute", attrsToKeep));
+      apigeePost(uri, Map.of("attribute", attrsToKeep));
       ctx.status(200).json(Collections.emptyMap());
     } catch (Exception e) {
       e.printStackTrace();
