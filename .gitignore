@@ -28,6 +28,7 @@ integration/coverage
 private-env.sh
 instructions.txt
 backend/src/main/resources/web
+backend/src/main/resources/keys/*.pem
 frontend/src/environments/environment.private.ts
 
 # emacs detritus
