@@ -1,0 +1,115 @@
+/*
+ *  Copyright © 2025 Google LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 10%);
+}
+
+.navbar-nav {
+  list-style: none;
+  display: flex;
+  padding-left: 0;
+  margin-bottom: 0;
+  gap: 1rem; /* Space between nav items */
+}
+
+.nav-item {
+  /* Styles for list items if needed */
+}
+
+.nav-link {
+  color: #0d6efd;
+  text-decoration: none;
+  padding: 0.5rem 0;
+  transition: color 0.15s ease-in-out;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  color: #0a58ca;
+  text-decoration: underline;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  color: #343a40;
+  text-decoration: none;
+  border-bottom: 2px solid #0d6efd;
+}
+
+.menu-container {
+  position: relative; /* Needed for absolute positioning of dropdown */
+}
+
+.hamburger-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem; /* Adjust size as needed */
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  color: #6c757d; /* Match previous button color */
+}
+
+.hamburger-button:hover {
+  color: #343a40;
+}
+
+.dropdown-menu {
+  display: none; /* Hidden by default */
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 15%);
+  min-width: 160px;
+  z-index: 1000; /* Ensure it's above other content */
+  padding: 0.5rem 0;
+  margin-top: 0.125rem; /* Small gap below button */
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  /*  width: 100%; */
+  padding: 0.5rem 1rem;
+  clear: both;
+  font-weight: 400;
+  color: #212529;
+  text-align: inherit;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  color: #1e2125;
+  background-color: #e9ecef;
+  text-decoration: none;
+}

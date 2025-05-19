@@ -1,0 +1,206 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.google.example</groupId>
+    <artifactId>devportal-exp-backend</artifactId>
+    <version>20250411</version>
+    <packaging>jar</packaging>
+
+    <properties>
+      <target.for.java>21</target.for.java>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <javalin.version>6.6.0</javalin.version>
+      <brotli.version>1.15.0</brotli.version>
+      <slf4j.version>2.0.13</slf4j.version>
+      <bouncycastle.version>1.80</bouncycastle.version>
+      <caffeine.version>3.2.0</caffeine.version>
+      <jackson.databind.version>2.19.0</jackson.databind.version>
+      <gson.version>2.13.1</gson.version>
+      <java.jwt.version>4.5.0</java.jwt.version>
+      <jwks.rsa.version>0.22.1</jwks.rsa.version>
+      <gcp-project-name>${env.REPOSITORY_PROJECT}</gcp-project-name>
+    </properties>
+
+    <dependencies>
+      <dependency>
+        <groupId>io.javalin</groupId>
+        <artifactId>javalin</artifactId>
+        <version>${javalin.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.databind.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.auth0</groupId>
+        <artifactId>java-jwt</artifactId>
+        <version>${java.jwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.auth0</groupId>
+        <artifactId>jwks-rsa</artifactId>
+        <version>${jwks.rsa.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>${caffeine.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+    </dependencies>
+
+    <build>
+      <plugins>
+
+      <!--
+          This plugin gets used with `mvn clean package jib:build` . You MUST
+          run the package goal first.
+
+          With no cloudbuild.yaml, during `gcloud run deploy`, the build will be
+          performed by Cloud Build via the skaffold pack builder, which does not
+          use the jib-maven-plugin.
+
+          But if you want to just build via maven and push an image to a Container
+          Registry repo, `PROJECT_ID=my-gcp-project mvn compile jib:build`
+          will do it.
+       -->
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>3.4.5</version>
+        <configuration>
+          <containerizingMode>packaged</containerizingMode>
+          <to>
+            <!--
+                The jib plugin will push the built image into this specific
+                Artifact Registry repo & path. What follows the colon (the
+                version here) will be a tag.
+            -->
+            <image>gcr.io/${gcp-project-name}/cloud-builds-submit/${project.artifactId}-container:${project.version}</image>
+
+            <!-- Later, can deploy this with:
+
+                 gcloud run deploy SERVICE-NAME -+-image gcr.io/full.url.here -+-platform managed ...
+            -->
+          </to>
+        </configuration>
+      </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.0</version>
+          <configuration>
+            <release>${target.for.java}</release>
+            <compilerArgs>
+              <arg>-Xlint:deprecation</arg>
+              <arg>-Xlint:unchecked</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+
+        <!-- Plugin to create an executable JAR -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.6.0</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>shade</goal>
+              </goals>
+              <configuration>
+                <transformers>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <mainClass>com.google.example.devportalexp.App</mainClass>
+                  </transformer>
+                </transformers>
+                <filters>
+                  <filter>
+                    <artifact>*:*</artifact>
+                    <excludes>
+                      <exclude>META-INF/*.SF</exclude>
+                      <exclude>META-INF/*.DSA</exclude>
+                      <exclude>META-INF/*.RSA</exclude>
+                    </excludes>
+                  </filter>
+                </filters>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.3.1</version>
+          <configuration>
+            <!-- this says to put the resources in a subdir within the jar -->
+            <outputDirectory>${project.build.outputDirectory}/resources</outputDirectory>
+          </configuration>
+        </plugin>
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.9.0</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.18.0</version>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>display-dependency-updates</goal>
+              <goal>display-plugin-updates</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      </plugins>
+    </build>
+</project>

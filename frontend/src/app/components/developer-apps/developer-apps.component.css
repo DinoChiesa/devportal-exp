@@ -1,0 +1,353 @@
+/*
+ *  Copyright © 2025 Google LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.apps-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+  font-family: sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 10%);
+}
+
+.apps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.apps-container h1 {
+  text-align: center;
+  margin: 0; /* Remove default margin */
+  color: #333;
+}
+
+.app-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.app-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.app-item h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #198754;
+}
+
+.app-item p {
+  margin-bottom: 6px;
+  color: #555;
+  line-height: 1;
+  font-size: 84%;
+  font-variant-caps: all-small-caps;
+}
+
+.app-item code {
+  background-color: #dcecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.app-item p > code {
+  background-color: #ececef;
+}
+
+.app-status {
+  font-size: 0.9em;
+  font-weight: normal;
+  color: #6c757d;
+}
+
+.credentials-section {
+  margin-top: 10px;
+  /* padding-top: 10px; */
+  border-top: 1px dashed #eee;
+}
+
+.credentials-section h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1em;
+  color: #444;
+}
+
+.credential-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.credential-item {
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 3px solid #0dcaf0;
+  border-top: 1px dotted #bbb;
+  padding-top: 4px;
+}
+
+.credential-item p {
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.credential-item code {
+  font-size: 0.95em;
+}
+
+.credential-item ul {
+  list-style: square;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding-left: 20px;
+  font-size: 0.9em;
+}
+
+.credential-row {
+  display: flex;
+  align-items: baseline; /* Align text baselines */
+  gap: 8px; /* Space between label and value */
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.credential-label {
+  flex-shrink: 0;
+  width: 150px;
+  font-weight: bold;
+  color: #333;
+  text-align: right;
+}
+
+.credential-value {
+  font-family: monospace;
+  background-color: #dcecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  flex-grow: 1; /* Allow value to take available space */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95em;
+  min-width: 150px; /* Minimum width */
+  /* width: 300px; /* Optional: Set fixed width if needed */
+}
+
+.secret-container {
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.secret-container strong {
+}
+
+.secret-value {
+  /* No specific overrides needed currently */
+}
+
+.cred-actions {
+  display: flex;
+  width: 60px;
+  gap: 5px;
+  flex-shrink: 0; /* Prevent icons container from shrinking */
+}
+
+.icon-button {
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 2px;
+  line-height: 1; /* Ensure consistent vertical alignment */
+  user-select: none; /* Prevent text selection on icons */
+  transition: opacity 0.2s ease;
+}
+
+.icon-button:hover {
+  opacity: 0.7;
+}
+
+.info-message {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  padding: 20px;
+}
+
+.error-message {
+  color: #dc3545; /* Red for errors */
+  font-weight: bold;
+}
+
+.create-app-form {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 10%);
+}
+
+.create-app-form h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #555;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #444;
+}
+
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.product-select-list {
+  list-style: none;
+  max-height: 150px; /* Limit height and make scrollable */
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.product-select-list li {
+  margin-bottom: 8px;
+}
+
+.product-select-list label {
+  font-weight: normal;
+  display: flex; /* Align checkbox and text */
+  align-items: center;
+  cursor: pointer;
+}
+
+.product-select-list input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.form-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions button:first-of-type {
+  /* Create button */
+  background-color: #0d6efd;
+  color: white;
+}
+
+.form-actions button:first-of-type:hover:not(:disabled) {
+  background-color: #0b5ed7;
+}
+
+.form-actions .cancel-button {
+  /* Cancel button */
+  background-color: #6c757d;
+  color: white;
+}
+
+.form-actions .cancel-button:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.create-error {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+  color: #842029;
+  border-radius: 4px;
+}
+
+.filter-input {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 0.95em;
+  width: calc(100% - 110px); /* Adjust width as needed */
+  display: inline-block;
+  /* Adjust width and remove margin if needed */
+  width: auto; /* Let it size based on content/flex */
+  margin-left: 10px; /* Space between label and input */
+}
+
+.product-filter-header {
+  display: flex;
+  justify-content: space-between; /* Pushes label left, input right */
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.product-filter-header label {
+  margin-bottom: 0;
+  flex-shrink: 0; /* Prevent label from shrinking */
+}
+
+.product-filter-header .filter-input {
+  /* Adjust width - maybe make it take remaining space or a fixed width */
+  flex-grow: 1; /* Allow input to grow */
+  max-width: 78%; /* Limit growth */
+  margin-left: 15px; /* Ensure space from label */
+}
+
+.app-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Align items to the top */
+  margin-bottom: 8px; /* Adjust spacing as needed */
+}
+
+.app-item-header h2 {
+  margin: 0; /* Remove default margin from h2 */
+  flex-grow: 1; /* Allow h2 to take available space */
+  margin-right: 10px; /* Space between title and button */
+}

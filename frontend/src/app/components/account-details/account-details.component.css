@@ -1,0 +1,411 @@
+/*
+ *  Copyright © 2025 Google LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.account-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+  font-family: sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 10%);
+}
+
+.account-container h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: auto 1fr; /* Label column, Value column */
+  gap: 10px 15px; /* Row gap, Column gap */
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: contents; /* Allows grid layout to apply directly to children */
+}
+
+.detail-label {
+  font-weight: bold;
+  color: #555;
+  text-align: right;
+}
+
+.detail-value {
+  color: #333;
+}
+
+.detail-value code {
+  background-color: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  word-break: break-all; /* Prevent long IDs from overflowing */
+}
+
+.attributes-section {
+  grid-column: 1 / -1; /* Span both columns */
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #eee;
+}
+
+.attributes-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  color: #444;
+}
+
+.attribute-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.attribute-list li {
+  margin-bottom: 5px;
+  font-size: 0.95em;
+}
+
+.attr-name {
+  font-weight: bold;
+  color: #666;
+  margin-right: 5px;
+}
+
+.attr-value {
+  color: #333;
+}
+
+.info-message {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  padding: 20px;
+}
+
+.error-message {
+  color: #dc3545; /* Red for errors */
+  font-weight: bold;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-header h3 {
+  margin: 0; /* Remove default margin */
+}
+
+.certificates-section {
+  grid-column: 1 / -1; /* Span both columns */
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #eee;
+}
+
+.certificates-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  color: #444;
+}
+
+.certificate-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.certificate-list li {
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cert-id {
+  font-weight: bold;
+  color: #666;
+}
+
+.cert-fingerprint code {
+  background-color: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  word-break: break-all;
+  color: #333;
+}
+
+.modal-overlay {
+  position: fixed; /* Stay in place even when scrolling */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 65%); /* Slightly darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050; /* Ensure it's on top of other content */
+  padding: 15px; /* Padding for smaller screens */
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 25px 30px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 30%);
+  text-align: left;
+  max-width: 720px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.progress-modal {
+  min-height: 380px;
+  top: -80px;
+}
+
+.confirmation-modal,
+.upload-modal {
+  top: -50px;
+}
+
+.modal-content h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center; /* Center the title */
+  font-size: 1.3em;
+}
+
+.modal-content li {
+  padding-bottom: 8px;
+}
+
+.status-list {
+  list-style: none; /* Remove default bullets */
+  padding: 0 0 15px 0; /* Padding below list */
+  margin: 0;
+  font-size: 0.95em;
+  color: #444;
+  border-bottom: 1px solid #eee; /* Separator before indicator */
+  margin-bottom: 15px; /* Space below separator */
+}
+
+.status-list li {
+  padding: 6px 0; /* Spacing between items */
+  /* Add a subtle animation for appearing items */
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-activity-indicator {
+  text-align: center;
+  font-style: italic;
+  color: #777;
+  font-size: 0.9em;
+}
+
+.confirmation-modal .modal-actions,
+.upload-modal .modal-actions {
+  display: flex; /* Use flexbox for layout */
+  justify-content: center; /* Center buttons horizontally */
+  gap: 24px; /* Add 24px space between buttons */
+  margin-top: 25px; /* Add space above the button row */
+}
+
+.cert-menu-container {
+  position: relative; /* Needed for absolute positioning of dropdown */
+  display: inline-block; /* Align with header content */
+}
+
+.cert-action-button {
+  /* Reuse hamburger style or define specific */
+  background-color: #6c757d; /* Grey background */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 35px;
+  height: 30px;
+  font-size: 1.5em;
+  line-height: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 0;
+}
+
+.cert-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cert-action-button:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.cert-dropdown {
+  display: none; /* Hidden by default */
+  position: absolute;
+  right: 0; /* Align to the right of the button */
+  top: 100%; /* Position below the button */
+  background-color: white;
+  min-width: 240px;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 20%);
+  z-index: 1060; /* Ensure it's above other content but below modals */
+  border-radius: 4px;
+  padding: 5px 0;
+}
+
+.cert-dropdown.show {
+  display: block; /* Show when active */
+}
+
+.cert-dropdown .dropdown-item {
+  color: black;
+  padding: 10px 15px;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;
+  font-size: 0.95em;
+}
+
+.cert-dropdown .dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.upload-modal .form-group {
+  margin-bottom: 15px;
+}
+
+.upload-modal label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #444;
+}
+
+.upload-modal input[type="file"] {
+  display: block; /* Make it block level */
+  margin-bottom: 5px; /* Space below input */
+  /* Basic styling, browser default is often used */
+}
+
+.upload-error-msg {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+  color: #842029;
+  border-radius: 4px;
+  text-align: left;
+  position: relative; /* Needed for absolute positioning of button */
+  padding-right: 30px; /* Make space for the button */
+}
+
+.dismiss-error-button {
+  position: absolute;
+  top: 22%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  line-height: 1;
+  color: #842029;
+  cursor: pointer;
+  padding: 0 5px;
+  opacity: 0.7;
+}
+
+.dismiss-error-button:hover {
+  opacity: 1;
+}
+
+.file-upload-group {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between button and file name */
+}
+
+.choose-file-button {
+  /* Use secondary button styles, adjust padding/font if needed */
+  padding: 8px 15px; /* Slightly smaller padding */
+  font-size: 1em; /* Adjust font size */
+  flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.file-name {
+  font-style: italic;
+  color: #555;
+  font-size: 0.9em;
+  /* Allow filename to take remaining space and truncate */
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-modal .file-name {
+  /* not sure this is even necessary at this point */
+  font-style: italic;
+  color: #555;
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.file-name.placeholder {
+  color: #888; /* Lighter color for placeholder */
+}
+
+.visually-hidden {
+  position: absolute !important; /* Ensure it's taken out of layout flow */
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px); /* Deprecated but ensures hiding */
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px; /* Necessary for some screen readers */
+}

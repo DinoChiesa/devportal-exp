@@ -1,0 +1,107 @@
+/*
+ *  Copyright © 2025 Google LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.catalog-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+  font-family: sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 10%);
+}
+
+.catalog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 15px; /* Add gap between title and controls */
+}
+
+.catalog-header h1 {
+  margin: 0;
+  color: #333;
+  flex-grow: 1; /* Allow title to take available space */
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Space between search and logout */
+}
+
+.search-input {
+  padding: 8px 12px;
+  font-size: 0.95em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 200px; /* Give it some base width */
+}
+
+.product-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px; /* Adjust gap as needed */
+}
+
+.product-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px 12px;
+  /* margin-bottom: 10px; Remove individual margin-bottom as gap handles spacing */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 5%);
+  flex: 0 0 calc(33.333% - 10px); /* 3 items per row, 10px is (2/3 * 15px gap) */
+  /* Ensure items don't shrink below their content and can grow if space allows */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.product-item h2 {
+  margin-top: 0;
+  margin-bottom: 4px;
+  font-size: 1.1em;
+  color: #0056b3;
+}
+
+.product-item p {
+  margin-bottom: 6px;
+  font-size: 0.95em;
+  color: #555;
+  line-height: 1.4;
+}
+
+.product-item a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.product-item a:hover {
+  text-decoration: underline;
+}
+
+.info-message {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  padding: 20px;
+}

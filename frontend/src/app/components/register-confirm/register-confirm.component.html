@@ -1,0 +1,24 @@
+<div class="content"> <!-- Changed class name -->
+  <h3>Welcome!</h3>
+  <p>This is the first time you are signing in.</p>
+  <p>You will now be registered as a partner in our API Partner Program.</p>
+
+  <div class="actions">
+    <button
+      class="button-primary"
+      (click)="confirmRegistration()"
+      [disabled]="isProcessing">
+      {{ isProcessing ? 'Processing...' : 'Confirm' }}
+    </button>
+    <button
+      class="button-secondary"
+      (click)="cancelRegistration()"
+      [disabled]="isProcessing">
+      Cancel
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+</div>

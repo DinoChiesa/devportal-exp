@@ -1,0 +1,151 @@
+/*
+ *  Copyright © 2025 Google LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  height: 100%;
+  background: #70707d;
+  background: linear-gradient(
+    90deg,
+    rgba(112, 112, 125, 1) 0%,
+    rgba(150, 198, 217, 1) 60%,
+    rgba(184, 212, 219, 1) 100%
+  );
+
+  /* Add background image styles */
+  /*  background-image: url("/images/background.webp"); */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* Keep background fixed during scroll */
+}
+
+/* --- Common Button Styles --- */
+
+.button-add {
+  background-color: #198754;
+  color: white;
+  border: none;
+  border-radius: 50%; /* Make it round */
+  width: 30px;
+  height: 30px;
+  font-size: 2em;
+  line-height: 30px; /* Center the '+' vertically */
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 0;
+  display: inline-flex; /* Helps with alignment */
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.button-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #6c757d;
+}
+
+.button-add:hover:not(:disabled) {
+  background-color: #157347;
+}
+
+.button-delete {
+  background-color: #dcdcdc;
+  color: #adb5bd;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 2.2em;
+  padding: 0 5px;
+  line-height: 0.8; /* Adjust line height to better center the '⨯' */
+  margin-left: auto; /* Push to the right if in a flex container */
+  display: inline-flex; /* Helps with alignment */
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-bottom: 3px;
+}
+
+.button-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #ced4da;
+}
+
+.button-delete:hover:not(:disabled) {
+  color: #dc0000;
+  background-color: #dc9999;
+}
+
+.button-primary,
+.button-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.35em;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+  text-align: center;
+  display: inline-block; /* Ensure proper layout */
+  line-height: normal;
+}
+
+.button-primary {
+  background-color: #007bff;
+}
+
+.button-secondary {
+  background-color: #6c757d;
+}
+
+.button-danger {
+  background-color: #dc3545;
+}
+
+.button-primary:disabled,
+.button-secondary:disabled,
+.button-danger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.button-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.button-danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.confirmation-modal p {
+  line-height: 110%;
+}
+
+.confirmation-modal ul li {
+  margin-bottom: 4px;
+}

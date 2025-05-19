@@ -1,0 +1,17 @@
+<div class="welcome-container">
+  <div *ngIf="isSigningIn" class="signin-overlay">
+    <div class="spinner"></div>
+    <p>Signing in...</p>
+  </div>
+
+  <div class="content">
+    <h1>Cymbal<br/>API Partner Portal</h1>
+    <p>Explore our API catalog and get the credentials you need to connect.</p>
+    <div *ngIf="signInError" class="error-message">
+      {{ signInError }}
+    </div>
+    <button class="button-primary" (click)="signIn()" [disabled]="isSigningIn">
+      {{ isSigningIn ? 'Signing In...' : 'Sign In with Google' }}
+    </button>
+  </div>
+</div>

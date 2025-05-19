@@ -1,0 +1,38 @@
+<app-navbar></app-navbar> 
+<div class="catalog-container">
+  <header class="catalog-header">
+    <h1>API Catalog</h1>
+    <div class="header-controls">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name..."
+        [ngModel]="searchTerm$ | async"
+        (input)="onSearchTermChange($event)"  
+        aria-label="Search API Products">
+    </div>
+  </header>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="info-message">Loading API products...</div>
+
+  <!-- Product List (only show if not loading) -->
+  <div *ngIf="!isLoading && (filteredProducts$ | async) as products; else errorState">
+    <ul *ngIf="products.length > 0; else noProducts" class="product-list">
+      <li *ngFor="let product of products" class="product-item">
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <a *ngIf="product.specUrl" [href]="product.specUrl" target="_blank" rel="noopener noreferrer">View Spec</a>
+      </li>
+    </ul>
+    <ng-template #noProducts>
+      <p class="info-message">No API products found.</p>
+    </ng-template>
+  </div>
+
+  <!-- Error State (Placeholder) -->
+  <ng-template #errorState>
+    <!-- You could add more specific error messages if needed -->
+    <p *ngIf="!isLoading" class="info-message">Could not load products.</p>
+  </ng-template>
+</div>

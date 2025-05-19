@@ -1,0 +1,82 @@
+/*
+ *  Copyright © 2025 Google LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.dashboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(
+    100vh - 60px
+  ); /* Full viewport height minus navbar height (adjust 60px if needed) */
+
+  width: 100%;
+  text-align: center;
+  color: white;
+  padding-top: 60px; /* Add padding to account for fixed navbar height */
+  box-sizing: border-box; /* Include padding in height calculation */
+}
+
+.content {
+  background-color: rgba(0, 0, 0, 70%);
+  padding: 40px;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+}
+
+.content h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.content p {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.dashboard-options {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
+}
+
+.dashboard-link {
+  /* display: block; Removed, let flexbox handle layout */
+  padding: 15px 25px;
+  font-size: 1.1em;
+  color: white;
+  background-color: #007bff;
+  width: 200px;
+  min-height: 62px;
+  display: flex; /* Enable flexbox for centering */
+  align-items: center; /* Vertically center content */
+  justify-content: center; /* Horizontally center content */
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.dashboard-link:hover {
+  background-color: #0056b3;
+}

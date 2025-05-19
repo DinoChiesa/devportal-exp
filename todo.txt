@@ -1,0 +1,39 @@
+Friday, 11 April 2025, 07:18
+
+ x refresh token via gcloud auth on startup in development mode
+
+ x Associate logged in user with the ID Token
+
+ x register the developer as new if not known - create in Apigee
+
+ x Retrieve & Display Developer apps for the logged in user 
+
+ x Enable the user to obtain credentials for a given API product
+
+ x Add provisioning of a keypair to the credential flow
+
+ x make the download a zipfile not a json file
+
+ x slow down the cert generation interaction to make it more momentous
+
+ x grey out the welcome page when signing in.
+
+ x introduce a modal box that appears before generating the key + cert
+
+ x update the icon for the site to be an SVG for developer-portal
+
+ x use the partner-name cust attr on the Developer Profile, in the cert.
+     Fallback to "Unknown partner" if the attr is not present.
+
+ + enable deployment to Cloud Run.
+    x refer to environment variables for settings (see StateService.java)
+      
+    - produce a cloud build.yaml?
+      
+    x get token from service account
+
+    x provision a service account with the right role on the project.
+        (devadmin role, I think)
+
+   Retrieve actual specs and descriptions for API products. Probably from custom attrs.
+

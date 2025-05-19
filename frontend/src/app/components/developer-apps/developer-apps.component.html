@@ -1,0 +1,157 @@
+<app-navbar></app-navbar>
+<div class="apps-container">
+  <div class="apps-header">
+    <h1>Registered Developer Apps &amp; Credentials</h1>
+    <button
+      class="button-add"
+      (click)="toggleCreateForm()"
+      [disabled]="isLoading || developerApps.length >= 4"
+      title="{{ developerApps.length >= 4 ? 'Maximum number of apps reached' : 'Create New App' }}">
+      +
+    </button>
+  </div>
+
+  <!-- Create App Form (Initially Hidden) -->
+  <div *ngIf="showCreateForm" class="create-app-form">
+    <h2>Create New Developer App</h2>
+    <div class="form-group">
+      <label for="newAppName">App Name:</label>
+      <input type="text" id="newAppName" [(ngModel)]="newAppName" placeholder="Enter a unique app name" required>
+    </div>
+    <div class="form-group">
+      <div class="product-filter-header"> <!-- New container -->
+        <label>Select API Products:</label>
+        <!-- Filter Input  -->
+        <input
+            type="text"
+            id="apiProductFilter"
+            class="filter-input"
+            [(ngModel)]="apiProductFilter"
+            (input)="applyFilter()"
+            placeholder="Filter..."> <!-- Shortened placeholder -->
+      </div>
+      <ul class="product-select-list" *ngIf="filteredApiProducts.length > 0; else noFilteredApiProducts">
+        <li *ngFor="let product of filteredApiProducts"> <!-- Iterate over filtered list -->
+          <label>
+            <input
+              type="checkbox"
+              [value]="product.id"
+              [checked]="selectedApiProducts.get(product.id)"
+              (change)="selectedApiProducts.set(product.id, $any($event.target).checked)">
+             {{ product.name }} <!-- ({{ product.description }}) -->
+          </label>
+        </li>
+      </ul>
+       <ng-template #noFilteredApiProducts>
+         <p *ngIf="availableApiProducts.length > 0">No API Products match your filter.</p>
+         <p *ngIf="availableApiProducts.length === 0">No API Products available to add.</p>
+       </ng-template>
+    </div>
+     <div *ngIf="createError" class="error-message create-error">{{ createError }}</div>
+    <div class="form-actions">
+      <button (click)="createApp()" [disabled]="isCreating || !newAppName">
+        {{ isCreating ? 'Creating...' : 'Create App' }}
+      </button>
+      <button (click)="toggleCreateForm()" class="cancel-button" [disabled]="isCreating">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Existing App List -->
+  <!-- Show loading indicator while isLoading is true -->
+  <div *ngIf="isLoading" class="info-message">Loading your apps...</div>
+
+    <!-- Show error message if errorLoading is true -->
+    <div *ngIf="errorLoading && !isLoading" class="info-message error-message">
+      Error: Could not load app list. Please try again later.
+    </div>
+
+    <!-- Show app list or 'no apps' message only when not loading and no error -->
+    <div *ngIf="!isLoading && !errorLoading">
+      <ul *ngIf="developerApps.length > 0; else noApps" class="app-list">
+        <li *ngFor="let app of developerApps" class="app-item">
+          <div class="app-item-header">
+            <!-- Check if it's a placeholder error object -->
+            <h2 *ngIf="app.status !== 'Error'">{{ app.name }} <span *ngIf="app.status" class="app-status">({{ app.status }})</span></h2>
+            <h2 *ngIf="app.status === 'Error'" class="error-message">{{ app.name }}</h2> <!-- Display error name -->
+            <button
+              *ngIf="app.status !== 'Error'"
+              class="button-delete"
+              (click)="deleteApp(app.name)"
+              title="Delete App {{app.name}}">
+              ⨯
+            </button>
+          </div>
+
+          <p *ngIf="app.appId">App ID: <code>{{ app.appId }}</code></p> <!-- Only show if appId exists -->
+
+        <!-- Only show credentials if not an error placeholder -->
+        <div *ngIf="app.status !== 'Error' && app.credentials && app.credentials.length > 0" class="credentials-section">
+          <ul class="credential-list">
+            <li *ngFor="let cred of app.credentials" class="credential-item">
+              <div class="credential-row">
+                <strong class="credential-label">Status:</strong>
+                <span class="credential-status">{{ cred.status }}</span>
+                <span class="cred-actions"></span>
+              </div>
+              <!-- Consumer Key Row -->
+              <div class="credential-row">
+                <strong class="credential-label">Consumer Key:</strong>
+                <code class="credential-value">{{ cred.consumerKey }}</code>
+                <span class="cred-actions">
+                  <span
+                    class="icon-button"
+                    (click)="copyToClipboard(cred.consumerKey)"
+                    title="Copy apikey">
+                    📋
+                  </span>
+                </span>
+              </div>
+              <!-- Consumer Secret Row -->
+              <div *ngIf="cred.consumerSecret" class="credential-row secret-container">
+                <strong class="credential-label">Consumer Secret:</strong>
+                <code class="credential-value secret-value">
+                  {{ isSecretVisible(cred.consumerKey) ? cred.consumerSecret : '••••••••••••••••••••••••' }}
+                </code>
+                <span class="cred-actions">
+                  <span
+                    class="icon-button"
+                    (click)="copyToClipboard(cred.consumerSecret)"
+                    title="Copy secret">
+                    📋
+                  </span>
+                  <span
+                    class="icon-button"
+                    (click)="toggleSecretVisibility(cred.consumerKey)"
+                    title="Toggle visibility">
+                    {{ isSecretVisible(cred.consumerKey) ? '👁️' : '👁️‍🗨️' }} <!-- Example: Eye / Eye with slash -->
+                  </span>
+                </span>
+              </div>
+              <!-- End Consumer Secret Row -->
+              <div class="credential-row">
+                 <strong class="credential-label">Expires:</strong>
+                 <span class="credential-value">{{ cred.expiresAt | expiryDate }}</span>
+                 <span class="cred-actions"></span>
+              </div>
+              <div class="credential-row"  *ngIf="cred.apiProducts && cred.apiProducts.length > 0">
+                <strong class="credential-label">API Products:</strong>
+                <ul>
+                  <li *ngFor="let prod of cred.apiProducts">{{ prod.apiproduct }} ({{ prod.status }})</li>
+                </ul>
+              </div>
+
+            </li>
+          </ul>
+        </div>
+        <!-- Add more details or actions (e.g., view attributes, delete) here -->
+      </li>
+    </ul>
+    <ng-template #noApps>
+      <p class="info-message">You haven't registered any developer apps yet.</p>
+      <!-- Optionally add a button/link to create a new app -->
+    </ng-template>
+  </div>
+
+  <!-- Removed the ng-container wrapper -->
+
+</div>
