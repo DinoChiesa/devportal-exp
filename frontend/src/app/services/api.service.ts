@@ -36,7 +36,7 @@ export class ApiService {
    */
   getApiProducts(): Observable<ApiProduct[]> {
     // No longer need to check getIdToken() here, rely on session cookie
-    console.log('ApiService: > getApiProducts'); 
+    console.log('ApiService: > getApiProducts');
     // Add withCredentials: true to ensure cookies are sent
     return this.http.get<ApiProduct[]>(`${this.apiUrl}/apiproducts`, { withCredentials: true }).pipe(
       catchError(error => {
@@ -65,7 +65,7 @@ export class ApiService {
     }
 
     // Cache is invalid or doesn't exist, create new observable
-    console.log(`ApiService: > getDeveloperApps - Cache invalid or missing. Creating new observable. Timestamp: ${this.developerAppsCacheTimestamp}, Now: ${now}`);
+    console.log(`ApiService: > getDeveloperApps - Cache miss. Creating new observable. Timestamp: ${this.developerAppsCacheTimestamp}, Now: ${now}`);
     this.developerAppsCache$ = this.http.get<string[]>(`${this.apiUrl}/me/apps`, { withCredentials: true }).pipe(
       tap(() => {
         console.log('ApiService: Fetched fresh developer app names from backend.');
