@@ -108,6 +108,14 @@ public class App {
           "default-src 'self' http:; "
               + "script-src 'self' 'unsafe-eval' 'unsafe-inline' http:; "
               + "style-src 'self' 'unsafe-inline';");
+
+      // "Content-Security-Policy",
+      // "default-src 'self' apis.google.com; "
+      //     + "script-src 'self' 'unsafe-eval' 'unsafe-inline' http:; "
+      //     + "frame-src 'self' infinite-epoch-2900.firebaseapp.com; "
+      //     + "font-src 'self' fonts.gstatic.com; "
+      //     + "style-src 'self' fonts.googleapis.com 'unsafe-inline'; "
+      //     + "connect-src https://identitytoolkit.googleapis.com; ");
     } else if (ctype.contains("image/svg+xml")
         || ctype.contains("image/png")
         || resourcePath.endsWith(".map")) {
