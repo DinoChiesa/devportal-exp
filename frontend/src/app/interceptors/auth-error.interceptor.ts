@@ -25,23 +25,22 @@ export const authInterceptor: HttpInterceptorFn = ( req: HttpRequest<unknown>, n
           return throwError(() => error);
         }
 
+        // Try to re-establish a session with the backend if there is an active frontend Firebase auth user
         return authService.user$.pipe(
           take(1), // Get the current Firebase user state
           switchMap(user => {
             if (user) {
               // Firebase user exists, try to get ID token and re-establish session
-              console.log('authInterceptor: 401 detected. Firebase user exists. Attempting to re-establish session.');
+              console.log('authInterceptor: 401 detected. Attempting to re-establish session.');
               return authService.getIdToken().pipe(
                 switchMap(idToken => {
                   if (idToken) {
                     return authService.establishSession(idToken).pipe(
                       switchMap(() => {
-                        // Session re-established, retry the original request
                         console.log('authInterceptor: Session re-established. Retrying original request.');
-                        return next(req); // Retry the original request
+                        return next(req);
                       }),
                       catchError(reLoginError => {
-                        // Failed to re-establish session
                         console.error('authInterceptor: Failed to re-establish session after 401. Signing out.', reLoginError);
                         apiService.clearAllCaches();
                         authService.signOut();
@@ -50,7 +49,7 @@ export const authInterceptor: HttpInterceptorFn = ( req: HttpRequest<unknown>, n
                     );
                   } else {
                     // No ID token available
-                    console.error('authInterceptor: Firebase user exists but no ID token available. Signing out.');
+                    console.error('authInterceptor: no ID token available. Signing out.');
                     apiService.clearAllCaches();
                     authService.signOut();
                     return throwError(() => error); // Original 401 error
@@ -67,8 +66,7 @@ export const authInterceptor: HttpInterceptorFn = ( req: HttpRequest<unknown>, n
           })
         );
       }
-      // For other errors, just propagate them
-      console.error('HTTP Error:', error); // Keep general error logging
+      console.error('HTTP Error:', error);
       return throwError(() => error);
     })
   );

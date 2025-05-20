@@ -182,11 +182,6 @@ public class App {
                 config.bundledPlugins.enableDevLogging();
                 // config.http.disableCompression();
 
-                // config.http.brotliAndGzipCompression(4, 6);
-                // // Configure static file serving from
-                // // src/main/resources/static
-                //
-
                 // NOTE:
                 // Serving static files this way didn't work and attempts to
                 // diagnose it led me down numerous blind alleys, which cost me
@@ -214,11 +209,6 @@ public class App {
                 //       // staticFiles.mimeTypes.add(mimeType, ext);
                 //
                 //     });
-
-                // // Serve index.html for requests that don't match other routes
-                // // (useful for SPA routing) This ensures that deep links in
-                // // the Angular app work correctly when accessed directly.
-                // config.spaRoot.addFile("/", "/static/index.html", Location.CLASSPATH);
 
                 // Enable CORS for development (allow requests from Angular dev server, e.g.,
                 // http://localhost:4200)
@@ -280,23 +270,6 @@ public class App {
           // Remove the specific .error(404, ...) handler as handleStaticFile now handles it
           // .error(404, ctx -> ctx.result("Not Found"))
           ; // End of Javalin.create() chain
-
-      // // --- .before filter for CSP
-      // // TODO: determine if I need this or not.
-      // // I am trying to avoid a Chrome error.  WTF is going on?
-      // app.before(
-      //     ctx -> {
-      //       ctx.header(
-      //           "Content-Security-Policy",
-      //           "default-src 'self' http:; "
-      //               + "script-src 'self' 'unsafe-eval' 'unsafe-inline' http:; "
-      //               + "style-src 'self' 'unsafe-inline';");
-      //     });
-
-      // Use a single wildcard handler for all non-API GET requests to serve static files or
-      // index.html
-      // This replaces the previous separate "/" and "/static/*" handlers.
-      // Ensure this comes AFTER API routes are defined.
 
       // --- .before filter for protected API routes ---
       app.before(
