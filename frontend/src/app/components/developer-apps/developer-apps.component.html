@@ -99,10 +99,10 @@
                 <code class="credential-value">{{ cred.consumerKey }}</code>
                 <span class="cred-actions">
                   <span
-                    class="icon-button"
+                    class="icon-button mat-icon"
                     (click)="copyToClipboard(cred.consumerKey)"
                     title="Copy apikey">
-                    📋
+                    content_copy
                   </span>
                 </span>
               </div>
@@ -114,16 +114,16 @@
                 </code>
                 <span class="cred-actions">
                   <span
-                    class="icon-button"
+                    class="icon-button mat-icon"
                     (click)="copyToClipboard(cred.consumerSecret)"
                     title="Copy secret">
-                    📋
+                    content_copy
                   </span>
                   <span
-                    class="icon-button"
+                    class="icon-button mat-icon"
                     (click)="toggleSecretVisibility(cred.consumerKey)"
                     title="Toggle visibility">
-                    {{ isSecretVisible(cred.consumerKey) ? '👁️' : '👁️‍🗨️' }} <!-- Example: Eye / Eye with slash -->
+                    {{ isSecretVisible(cred.consumerKey) ? 'visibility' : 'visibility_off' }}
                   </span>
                 </span>
               </div>
