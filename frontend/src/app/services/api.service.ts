@@ -69,12 +69,12 @@ export class ApiService {
     this.developerAppsCache$ = this.http.get<string[]>(`${this.apiUrl}/me/apps`, { withCredentials: true }).pipe(
       tap(() => {
         console.log('ApiService: Fetched fresh developer app names from backend.');
-        this.developerAppsCacheTimestamp = Date.now(); // Update timestamp on successful fetch
+        this.developerAppsCacheTimestamp = Date.now();
       }),
       catchError(error => {
         console.error('ApiService: Error fetching developer app names:', error);
         this.clearDeveloperAppsCache();
-        return of([]); // Return empty array on error
+        return of([]);
       }),
       shareReplay({ bufferSize: 1, refCount: true }) // Share amongst subscribers, clean up if refCount hits 0
     );
@@ -124,8 +124,8 @@ export class ApiService {
       }),
       catchError(error => {
         console.error(`Error fetching details for app ${appName}:`, error);
-        this.appDetailsCache.delete(appName); // Remove failed entry from cache
-        throw error; // Re-throw the error to be handled by the component
+        this.appDetailsCache.delete(appName);
+        throw error;
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
@@ -147,11 +147,11 @@ export class ApiService {
     return this.http.post<DeveloperApp>(`${this.apiUrl}/me/apps`, payload, { withCredentials: true }).pipe(
       tap(newApp => {
          console.log('ApiService: App created:', newApp);
-         this.clearDeveloperAppsCache(); // Invalidate cache after creating an app
+         this.clearDeveloperAppsCache();
       }),
       catchError(error => {
         console.error(`Error creating developer app ${appName}:`, error);
-        throw error; // Re-throw error to be handled by the component
+        throw error;
       })
     );
   }
@@ -166,11 +166,11 @@ export class ApiService {
     return this.http.delete<any>(`${this.apiUrl}/me/apps/${appName}`, { withCredentials: true }).pipe(
       tap(() => {
         console.log(`ApiService: App "${appName}" deleted successfully.`);
-        this.clearDeveloperAppsCache(); // Invalidate cache after deleting an app
+        this.clearDeveloperAppsCache();
       }),
       catchError(error => {
         console.error(`Error deleting developer app ${appName}:`, error);
-        throw error; // Re-throw error to be handled by the component
+        throw error;
       })
     );
   }
@@ -198,7 +198,7 @@ export class ApiService {
       catchError(error => {
         console.error('ApiService: Error fetching developer details:', error);
         this.clearDeveloperDetailsCache();
-        throw error; // Re-throw error to be handled by the component
+        throw error;
       }),
       shareReplay({ bufferSize: 1, refCount: true }) // Share amongst subscribers
     );
@@ -231,11 +231,11 @@ export class ApiService {
     return this.http.post<any>(`${this.apiUrl}/me/certificates`, payload, { withCredentials: true }).pipe(
       tap(() => {
         console.log(`ApiService: Certificate registered (keyId: ${keyId}), clearing details cache.`);
-        this.clearDeveloperDetailsCache(); // Invalidate details cache
+        this.clearDeveloperDetailsCache();
       }),
       catchError(error => {
         console.error(`Error registering certificate (keyId: ${keyId}):`, error);
-        throw error; // Re-throw error to be handled by the component
+        throw error;
       })
     );
   }
@@ -258,11 +258,11 @@ export class ApiService {
       .pipe(
         tap(() => {
           console.log(`ApiService: Certificate uploaded (keyId: ${keyId}), clearing details cache.`);
-          this.clearDeveloperDetailsCache(); // Invalidate details cache
+          this.clearDeveloperDetailsCache();
         }),
         catchError(error => {
           console.error(`Error uploading certificate (keyId: ${keyId}):`, error);
-          throw error; // Re-throw error to be handled by the component
+          throw error;
         })
       );
   }
@@ -278,11 +278,11 @@ export class ApiService {
     return this.http.delete<any>(`${this.apiUrl}/me/certificates/${certId}`, { withCredentials: true }).pipe(
       tap(() => {
         console.log(`ApiService: Certificate deregistered (certId: ${certId}), clearing details cache.`);
-        this.clearDeveloperDetailsCache(); // Invalidate details cache
+        this.clearDeveloperDetailsCache();
       }),
       catchError(error => {
         console.error(`Error de-registering certificate (certId: ${certId}):`, error);
-        throw error; // Re-throw error to be handled by the component
+        throw error;
       })
     );
   }
@@ -298,11 +298,11 @@ export class ApiService {
     return this.http.post<any>(`${this.apiUrl}/registerSelfAsDeveloper`, {}, { withCredentials: true }).pipe(
       tap(() => {
         console.log('ApiService: Registered self as developer, clearing details cache.');
-        this.clearDeveloperDetailsCache(); // Invalidate details cache
+        this.clearDeveloperDetailsCache();
       }),
       catchError(error => {
         console.error('Error registering self as developer:', error);
-        throw error; // Re-throw error to be handled by the component/service
+        throw error;
       })
     );
   }
