@@ -79,7 +79,7 @@ export class AuthService {
   }
 
   /** Sends ID token to backend to create a session */
-  private establishSession(idToken: string): Observable<any> {
+  public establishSession(idToken: string): Observable<any> {
     console.log('AuthService: Sending ID token to backend for session creation...');
     return this.http.post(`${this.authApiUrl}/login`, { idToken }, { withCredentials: true });
   }

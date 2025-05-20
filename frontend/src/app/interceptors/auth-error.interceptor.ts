@@ -5,24 +5,71 @@ import {
   HttpRequest,
   HttpErrorResponse
 } from '@angular/common/http';
-import { throwError, EMPTY } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+import { catchError, switchMap, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { ApiService } from '../services/api.service';
 
 export const authInterceptor: HttpInterceptorFn = ( req: HttpRequest<unknown>, next: HttpHandlerFn ) => {
   const authService = inject(AuthService);
   const apiService = inject(ApiService);
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      console.error('HTTP Error:', error);
-      if (error.status == 401) {
-        console.error('authInterceptor: Caught 401 Unauthorized error. Signing out.');
-        apiService.clearAllCaches();
-        // signOut() handles backend logout AND navigation.
-        authService.signOut();
+      if (error.status === 401) {
+        // Prevent re-login loop if the /api/auth/login request itself fails with 401
+        if (req.url.includes('/api/auth/login')) {
+          console.error('authInterceptor: 401 on login request itself. Signing out.');
+          apiService.clearAllCaches();
+          authService.signOut();
+          return throwError(() => error);
+        }
+
+        return authService.user$.pipe(
+          take(1), // Get the current Firebase user state
+          switchMap(user => {
+            if (user) {
+              // Firebase user exists, try to get ID token and re-establish session
+              console.log('authInterceptor: 401 detected. Firebase user exists. Attempting to re-establish session.');
+              return authService.getIdToken().pipe(
+                switchMap(idToken => {
+                  if (idToken) {
+                    return authService.establishSession(idToken).pipe(
+                      switchMap(() => {
+                        // Session re-established, retry the original request
+                        console.log('authInterceptor: Session re-established. Retrying original request.');
+                        return next(req); // Retry the original request
+                      }),
+                      catchError(reLoginError => {
+                        // Failed to re-establish session
+                        console.error('authInterceptor: Failed to re-establish session after 401. Signing out.', reLoginError);
+                        apiService.clearAllCaches();
+                        authService.signOut();
+                        return throwError(() => reLoginError); // Or original error
+                      })
+                    );
+                  } else {
+                    // No ID token available
+                    console.error('authInterceptor: Firebase user exists but no ID token available. Signing out.');
+                    apiService.clearAllCaches();
+                    authService.signOut();
+                    return throwError(() => error); // Original 401 error
+                  }
+                })
+              );
+            } else {
+              // No Firebase user, proceed with sign out
+              console.error('authInterceptor: 401 detected. No Firebase user. Signing out.');
+              apiService.clearAllCaches();
+              authService.signOut();
+              return throwError(() => error); // Original 401 error
+            }
+          })
+        );
       }
-      return throwError(error);
+      // For other errors, just propagate them
+      console.error('HTTP Error:', error); // Keep general error logging
+      return throwError(() => error);
     })
   );
 };
