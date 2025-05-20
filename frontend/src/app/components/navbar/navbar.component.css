@@ -37,23 +37,23 @@
 }
 
 .nav-link {
-  color: #0d6efd;
+  color: #333; /* Link color */
   text-decoration: none;
   padding: 0.5rem 0;
   transition: color 0.15s ease-in-out;
+  font-weight: bold;
 }
 
 .nav-link:hover,
 .nav-link:focus {
-  color: #0a58ca;
-  text-decoration: underline;
+  color: #007bff; /* Link color on hover */
 }
 
 .nav-link.active {
-  font-weight: bold;
-  color: #343a40;
-  text-decoration: none;
-  border-bottom: 2px solid #0d6efd;
+  text-decoration: underline;
+  text-decoration-color: #007bff;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
 }
 
 .menu-container {
@@ -63,10 +63,10 @@
 .hamburger-button {
   background: none;
   border: none;
-  font-size: 1.5rem; /* Adjust size as needed */
+  font-size: 1.5rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  color: #6c757d; /* Match previous button color */
+  color: #6c757d;
 }
 
 .hamburger-button:hover {
