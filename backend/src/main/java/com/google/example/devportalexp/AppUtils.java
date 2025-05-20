@@ -27,9 +27,9 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class AppUtils {
@@ -64,18 +64,19 @@ public class AppUtils {
 
     URL resourceUrl = classLoader.getResource(basePath);
     if (resourceUrl == null) {
-      // Base path not found
       return null;
     }
 
-    // Define a function to process the stream of candidates:
-    // sort, pick the last, and map to full path.
     Function<Stream<String>, String> processCandidates =
         (candidateStream) ->
             candidateStream
                 .sorted(Comparator.naturalOrder())
                 .reduce((first, second) -> second) // Selects the last element
-                .map(name -> basePath.isEmpty() ? name : basePath + "/" + name) // Adjust mapping
+                .map(
+                    name ->
+                        (basePath.isEmpty() || name.startsWith(basePath))
+                            ? name
+                            : basePath + "/" + name)
                 .orElse(null);
 
     try {

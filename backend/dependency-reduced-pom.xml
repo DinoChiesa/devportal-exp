@@ -13,7 +13,7 @@
         <configuration>
           <containerizingMode>packaged</containerizingMode>
           <to>
-            <image>gcr.io/${env.REPOSITORY_PROJECT}/cloud-builds-submit/devportal-exp-backend-container:20250411</image>
+            <image>gcr.io/dchiesa-argolis-2/cloud-builds-submit/devportal-exp-backend-container:20250411</image>
           </to>
         </configuration>
       </plugin>
@@ -101,14 +101,13 @@
   </build>
   <properties>
     <gcp-project-name>${env.REPOSITORY_PROJECT}</gcp-project-name>
-    <bouncycastle.version>1.80</bouncycastle.version>
-    <target.for.java>21</target.for.java>
-    <jackson.databind.version>2.19.0</jackson.databind.version>
     <slf4j.version>2.0.13</slf4j.version>
+    <bouncycastle.version>1.80</bouncycastle.version>
     <gson.version>2.13.1</gson.version>
+    <target.for.java>21</target.for.java>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jackson.databind.version>2.19.0</jackson.databind.version>
     <javalin.version>6.6.0</javalin.version>
-    <brotli.version>1.15.0</brotli.version>
     <jwks.rsa.version>0.22.1</jwks.rsa.version>
     <java.jwt.version>4.5.0</java.jwt.version>
     <caffeine.version>3.2.0</caffeine.version>
