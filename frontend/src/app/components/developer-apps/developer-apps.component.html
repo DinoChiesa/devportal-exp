@@ -91,47 +91,53 @@
               <div class="credential-row">
                 <strong class="credential-label">Status:</strong>
                 <span class="credential-status">{{ cred.status }}</span>
-                <span class="cred-actions"></span>
+                <span class="credential-actions"></span>
               </div>
               <!-- Consumer Key Row -->
               <div class="credential-row">
                 <strong class="credential-label">Consumer Key:</strong>
-                <code class="credential-value">{{ cred.consumerKey }}</code>
-                <span class="cred-actions">
-                  <span
-                    class="icon-button mat-icon"
-                    (click)="copyToClipboard(cred.consumerKey)"
-                    title="Copy apikey">
-                    content_copy
-                  </span>
-                </span>
+                <div class="credential-value">
+                  <code class="credential-text-value">{{ cred.consumerKey }}</code>
+                  <div class="credential-actions">
+                    <span
+                      class="mat-icon"
+                      (click)="copyToClipboard(cred.consumerKey)"
+                      title="Copy apikey">
+                      content_copy
+                    </span>
+                  </div>
+                </div>
               </div>
               <!-- Consumer Secret Row -->
               <div *ngIf="cred.consumerSecret" class="credential-row secret-container">
                 <strong class="credential-label">Consumer Secret:</strong>
-                <code class="credential-value secret-value">
-                  {{ isSecretVisible(cred.consumerKey) ? cred.consumerSecret : '••••••••••••••••••••••••' }}
-                </code>
-                <span class="cred-actions">
-                  <span
-                    class="icon-button mat-icon"
-                    (click)="copyToClipboard(cred.consumerSecret)"
-                    title="Copy secret">
-                    content_copy
-                  </span>
-                  <span
-                    class="icon-button mat-icon"
-                    (click)="toggleSecretVisibility(cred.consumerKey)"
-                    title="Toggle visibility">
-                    {{ isSecretVisible(cred.consumerKey) ? 'visibility' : 'visibility_off' }}
-                  </span>
-                </span>
+                <div class="credential-value">
+                  <code class="credential-text-value secret-value">
+                    {{ isSecretVisible(cred.consumerKey) ? cred.consumerSecret : '••••••••••••••••••••••••' }}
+                  </code>
+                  <div class="credential-actions">
+                    <span
+                      class="mat-icon"
+                      (click)="toggleSecretVisibility(cred.consumerKey)"
+                      title="Toggle visibility">
+                      {{ isSecretVisible(cred.consumerKey) ? 'visibility' : 'visibility_off' }}
+                    </span>
+                    <span
+                      class="mat-icon"
+                      (click)="copyToClipboard(cred.consumerSecret)"
+                      title="Copy secret">
+                      content_copy
+                    </span>
+                  </div>
+                </div>
               </div>
               <!-- End Consumer Secret Row -->
               <div class="credential-row">
                  <strong class="credential-label">Expires:</strong>
-                 <span class="credential-value">{{ cred.expiresAt | expiryDate }}</span>
+                <div class="credential-value">
+                 <span class="credential-text-value">{{ cred.expiresAt | expiryDate }}</span>
                  <span class="cred-actions"></span>
+                </div>
               </div>
               <div class="credential-row"  *ngIf="cred.apiProducts && cred.apiProducts.length > 0">
                 <strong class="credential-label">API Products:</strong>

@@ -66,7 +66,7 @@
 }
 
 .app-item code {
-  background-color: #dcecef;
+  /* background-color: #dcecef; */
   padding: 2px 4px;
   border-radius: 3px;
   font-family: monospace;
@@ -142,11 +142,18 @@
 }
 
 .credential-value {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.credential-text-value {
   font-family: monospace;
   background-color: #dcecef;
   padding: 2px 4px;
   border-radius: 3px;
-  flex-grow: 1; /* Allow value to take available space */
+  /* flex-grow: 1; */ /* Allow value to take available space */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -164,27 +171,12 @@
 }
 
 .secret-value {
-  /* No specific overrides needed currently */
 }
 
-.cred-actions {
+.credential-actions {
   display: flex;
-  width: 60px;
-  gap: 5px;
+  align-items: center;
   flex-shrink: 0; /* Prevent icons container from shrinking */
-}
-
-.icon-button {
-  cursor: pointer;
-  font-size: 1.2em;
-  padding: 2px;
-  line-height: 1; /* Ensure consistent vertical alignment */
-  user-select: none; /* Prevent text selection on icons */
-  transition: opacity 0.2s ease;
-}
-
-.icon-button:hover {
-  opacity: 0.7;
 }
 
 .info-message {
