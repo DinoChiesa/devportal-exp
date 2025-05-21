@@ -42,84 +42,91 @@ public class AppUtils {
    *     null if not found.
    * @throws IOException If an I/O error occurs.
    */
-
-  //  AI! Extract processCandidates into a private static helper. Also extract the logic for "file"
-  // and "jar" protocols into smaller helper methods to improve readability.
-
   public static String findResourceNameByPattern(String globPattern) throws IOException {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     if (classLoader == null) {
       classLoader = AppUtils.class.getClassLoader();
     }
 
-    // Normalize the pattern to use "/"
     String normalizedPattern = globPattern.replace("\\", "/");
-
     if (!normalizedPattern.startsWith("resources/")) {
       normalizedPattern = "resources/" + normalizedPattern;
     }
-    // Extract base path and file name pattern
+
     int lastSlash = normalizedPattern.lastIndexOf('/');
     String basePath = (lastSlash > -1) ? normalizedPattern.substring(0, lastSlash) : "";
     String fileNamePatternOnly =
         (lastSlash > -1) ? normalizedPattern.substring(lastSlash + 1) : normalizedPattern;
 
     PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fileNamePatternOnly);
-
     URL resourceUrl = classLoader.getResource(basePath);
+
     if (resourceUrl == null) {
       return null;
     }
 
-    Function<Stream<String>, String> processCandidates =
-        (candidateStream) ->
-            candidateStream
-                .sorted(Comparator.naturalOrder())
-                .reduce((first, second) -> second) // Selects the last element
-                .map(
-                    name ->
-                        (basePath.isEmpty() || name.startsWith(basePath))
-                            ? name
-                            : basePath + "/" + name)
-                .orElse(null);
-
     try {
       if ("file".equals(resourceUrl.getProtocol())) {
-        Path dirPath = Paths.get(resourceUrl.toURI());
-        if (Files.isDirectory(dirPath)) {
-          try (Stream<Path> stream = Files.list(dirPath)) {
-            Stream<String> candidates =
-                stream
-                    .filter(Files::isRegularFile)
-                    .map(Path::getFileName) // Get only the file name part for matching
-                    .filter(matcher::matches)
-                    .map(path -> path.toString());
-            return processCandidates.apply(candidates);
-          }
-        }
+        return findMatchingResourceInDirectory(resourceUrl, basePath, matcher);
       } else if ("jar".equals(resourceUrl.getProtocol())) {
-        JarURLConnection jarURLConnection = (JarURLConnection) resourceUrl.openConnection();
-        try (JarFile jarFile = jarURLConnection.getJarFile()) {
-          String searchPrefixInJar = basePath.isEmpty() ? "" : basePath + "/";
-          // For JARs, the entry name is already the full path relative to JAR root
-          Stream<String> candidates =
-              jarFile.stream()
-                  .filter(
-                      entry ->
-                          entry.getName().startsWith(searchPrefixInJar) && !entry.isDirectory())
-                  .filter(
-                      entry -> {
-                        String nameInDir = entry.getName().substring(searchPrefixInJar.length());
-                        // Ensure it's a direct child, not in a sub-subdirectory of basePath
-                        return !nameInDir.contains("/") && matcher.matches(Paths.get(nameInDir));
-                      })
-                  .map(JarEntry::getName);
-          return processCandidates.apply(candidates);
-        }
+        return findMatchingResourceInJar(resourceUrl, basePath, matcher);
       }
-      return null; // No matching protocol or conditions met
+      return null; // Protocol not supported or no conditions met
     } catch (URISyntaxException e) {
       throw new IOException("Error converting URL to URI: " + resourceUrl, e);
+    }
+  }
+
+  private static String processCandidateStream(Stream<String> candidateStream, String basePath) {
+    return candidateStream
+        .sorted(Comparator.naturalOrder())
+        .reduce((first, second) -> second) // Selects the last element (latest by name)
+        .map(
+            name ->
+                (basePath.isEmpty() || name.startsWith(basePath)) ? name : basePath + "/" + name)
+        .orElse(null);
+  }
+
+  private static String findMatchingResourceInDirectory(
+      URL directoryUrl, String basePath, PathMatcher matcher)
+      throws URISyntaxException, IOException {
+    Path dirPath = Paths.get(directoryUrl.toURI());
+    if (Files.isDirectory(dirPath)) {
+      try (Stream<Path> stream = Files.list(dirPath)) {
+        Stream<String> candidates =
+            stream
+                .filter(Files::isRegularFile)
+                .map(Path::getFileName) // Get only the file name part for matching
+                .filter(matcher::matches)
+                .map(Path::toString); // Convert matched Path (filename only) to String
+        return processCandidateStream(candidates, basePath);
+      }
+    }
+    return null;
+  }
+
+  private static String findMatchingResourceInJar(
+      URL jarResourceUrl, String basePathInJar, PathMatcher matcher) throws IOException {
+    JarURLConnection jarURLConnection = (JarURLConnection) jarResourceUrl.openConnection();
+    try (JarFile jarFile = jarURLConnection.getJarFile()) {
+      // Ensure basePathInJar ends with a slash if it's not empty, for correct prefix matching.
+      String searchPrefixInJar =
+          basePathInJar.isEmpty() ? "" : (basePathInJar.endsWith("/") ? basePathInJar : basePathInJar + "/");
+
+      Stream<String> candidates =
+          jarFile.stream()
+              .filter(entry -> !entry.isDirectory() && entry.getName().startsWith(searchPrefixInJar))
+              .map(JarEntry::getName) // Full path within JAR
+              .filter(
+                  entryName -> {
+                    // Extract the simple file name part from the entry name
+                    String fileNameOnly = entryName.substring(searchPrefixInJar.length());
+                    // Ensure it's a direct child and matches the pattern
+                    return !fileNameOnly.contains("/") && matcher.matches(Paths.get(fileNameOnly));
+                  });
+      // For JARs, processCandidateStream gets the full path, so basePath is effectively empty
+      // as the full path is already what we want.
+      return processCandidateStream(candidates, "");
     }
   }
 
