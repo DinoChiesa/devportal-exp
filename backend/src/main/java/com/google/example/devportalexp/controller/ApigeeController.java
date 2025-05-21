@@ -734,101 +734,113 @@ public class ApigeeController {
     }
   }
 
-  /**
-   * POST /api/me/certificates
-   *
-   * <p>Expects a json with these members: publicKey - PEM-encoded public key keyId - arbitrary
-   * string identifying the key
-   */
-  public void registerCertificate(final Context ctx)
-      throws IOException, InterruptedException, URISyntaxException {
-    String devEmail = ctx.attribute("userEmail");
-    String userName = ctx.attribute("name");
-    if (devEmail == null || devEmail.isBlank()) {
-      System.err.println("Error: userEmail not found in context.");
-      ctx.status(500).json("Internal server error: User email not found.");
-      return;
-    }
-    System.out.printf("registerCertificate [%s]...\n", devEmail);
+  // --- Helper methods for registerCertificate ---
 
-    // Verify Content-Type
+  private record ProcessedCertificate(X509Certificate certificate, String pem) {}
+
+  private Optional<Map<String, Object>> parseAndValidateRegisterCertificateRequest(Context ctx) {
     String contentType = ctx.contentType();
     if (contentType == null || !contentType.toLowerCase().startsWith("application/json")) {
-      System.err.printf("Error: Invalid Content-Type: %s\n", contentType);
+      log.warn("Invalid Content-Type for registerCertificate: {}", contentType);
       ctx.status(415).json(Map.of("error", "Request must be application/json"));
-      return;
+      return Optional.empty();
     }
 
-    Type t = new TypeToken<Map<String, Object>>() {}.getType();
-    Map<String, Object> body = gson.fromJson(ctx.body(), t);
-    if (body == null) {
-      ctx.status(400).json(Map.of("error", "payload cannot be parsed"));
-      return;
+    Map<String, Object> payload;
+    try {
+      payload = gson.fromJson(ctx.body(), mapType);
+    } catch (Exception e) {
+      log.warn("Failed to parse JSON payload for registerCertificate", e);
+      ctx.status(400).json(Map.of("error", "Payload cannot be parsed"));
+      return Optional.empty();
     }
-    boolean hasPublicKey = body.containsKey("publicKey");
-    boolean hasCertificate = body.containsKey("certificate");
 
+    if (payload == null) { // Should be caught by try-catch, but as a safeguard
+      log.warn("Parsed JSON payload is null for registerCertificate");
+      ctx.status(400).json(Map.of("error", "Payload cannot be parsed"));
+      return Optional.empty();
+    }
+
+    boolean hasPublicKey = payload.containsKey("publicKey");
+    boolean hasCertificate = payload.containsKey("certificate");
+
+    // Validate payload structure:
+    // 1. If publicKey is present, keyId must also be present.
+    // 2. publicKey and certificate are mutually exclusive.
     boolean invalidPayload =
-        (!body.containsKey("keyId") && hasPublicKey) || (hasPublicKey == hasCertificate);
+        (hasPublicKey && !payload.containsKey("keyId")) || (hasPublicKey == hasCertificate);
 
     if (invalidPayload) {
+      log.warn("Invalid payload structure for registerCertificate: {}", payload);
       ctx.status(400)
-          .json(Map.of("error", "invalid json payload, missing or inconsistent properties"));
-      return;
+          .json(Map.of("error", "Invalid JSON payload: missing or inconsistent properties."));
+      return Optional.empty();
+    }
+    log.info("registerCertificate payload validation successful.");
+    return Optional.of(payload);
+  }
+
+  private Optional<List<Map<String, Object>>> checkCertificateLimitAndGetAttributes(
+      Context ctx, String devEmail)
+      throws IOException, InterruptedException, URISyntaxException {
+    String attributesUri = String.format("/developers/%s/attributes", devEmail);
+    Map<String, Object> currentDevAttrsResponse = apigeeGet(attributesUri);
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> currentAttrList =
+        (List<Map<String, Object>>) currentDevAttrsResponse.get("attribute");
+
+    long certificateCount = 0;
+    if (currentAttrList != null) {
+      certificateCount =
+          currentAttrList.stream()
+              .filter(
+                  mapEntry -> {
+                    if (mapEntry == null) return false;
+                    Object nameValue = mapEntry.get("name");
+                    return nameValue instanceof String && ((String) nameValue).startsWith("cert-");
+                  })
+              .count();
     }
 
-    System.out.printf("registerCertificate payload looks good...\n");
+    if (certificateCount >= MAX_CERTIFICATES) {
+      log.warn(
+          "Developer {} already has {} certificates (limit is {}).",
+          devEmail,
+          certificateCount,
+          MAX_CERTIFICATES);
+      ctx.status(400)
+          .json(
+              Map.of(
+                  "error",
+                  String.format(
+                      "Maximum number of certificates (%d) already registered.",
+                      MAX_CERTIFICATES)));
+      return Optional.empty();
+    }
+    log.info(
+        "Developer {} has {} certificates, proceeding with registration.",
+        devEmail,
+        certificateCount);
+    return Optional.of(currentAttrList == null ? new ArrayList<>() : currentAttrList);
+  }
 
+  private Optional<ProcessedCertificate> generateOrUploadCertificate(
+      Context ctx,
+      String devEmail,
+      String userName, // Full name from session
+      Map<String, Object> payload,
+      List<Map<String, Object>> currentDevAttrs) {
     try {
-      // --- Certificate Limit Check ---
-      String uri = String.format("/developers/%s/attributes", devEmail);
-      Map<String, Object> currentDevAttrs = apigeeGet(uri);
-      @SuppressWarnings("unchecked")
-      List<Map<String, Object>> currentAttrList =
-          (List<Map<String, Object>>) currentDevAttrs.get("attribute");
+      String certificatePem;
+      X509Certificate x509Cert;
 
-      long certificateCount = 0;
-      if (currentAttrList != null) {
-        certificateCount =
-            currentAttrList.stream()
-                .filter(
-                    mapEntry -> {
-                      if (mapEntry == null) return false;
-                      Object nameValue = mapEntry.get("name");
-                      return nameValue instanceof String
-                          && ((String) nameValue).startsWith("cert-");
-                    })
-                .count();
-      }
-
-      if (certificateCount >= MAX_CERTIFICATES) {
-        System.err.printf(
-            "Error: Developer %s already has %d certificates (limit is %d).\n",
-            devEmail, certificateCount, MAX_CERTIFICATES);
-        ctx.status(400)
-            .json(
-                Map.of(
-                    "error",
-                    String.format(
-                        "Maximum number of certificates (%d) already registered.",
-                        MAX_CERTIFICATES)));
-        return;
-      }
-      System.out.printf(
-          "Developer %s has %d certificates, proceeding with registration.\n",
-          devEmail, certificateCount);
-      // --- End Certificate Limit Check ---
-
-      String certificatePem = null;
-      X509Certificate signedCertificate = null;
-
-      if (hasPublicKey) {
-        // generate a certificate from an uploaded public key
-        // --- Determine Organization Name for SubjectDN ---
-        String partnerOrgName = "Unknown Partner Org";
-        if (currentAttrList != null) {
+      if (payload.containsKey("publicKey")) {
+        // Generate a certificate from an uploaded public key
+        String partnerOrgName = "Unknown Partner Org"; // Default
+        if (currentDevAttrs != null) {
           partnerOrgName =
-              currentAttrList.stream()
+              currentDevAttrs.stream()
                   .filter(
                       attr ->
                           attr != null
@@ -838,69 +850,160 @@ public class ApigeeController {
                   .findFirst()
                   .orElse(partnerOrgName);
         }
-        System.out.printf("Using partner organization name: %s\n", partnerOrgName);
-        // --- End Determine Organization Name ---
+        log.info("Using partner organization name for cert generation: {}", partnerOrgName);
 
         String subjectDN =
             String.format(
                 "CN=%s, O=%s, serialNumber=%s",
-                userName, partnerOrgName, (String) body.get("keyId"));
+                userName, // Use the full name for CN
+                partnerOrgName,
+                (String) payload.get("keyId"));
 
-        signedCertificate =
+        PublicKey publicKeyToSign =
+            KeyUtility.decodePublicKey((String) payload.get("publicKey"));
+        x509Cert =
             X509CertificateService.getInstance()
-                .generateNewSignedCertificate(
-                    KeyUtility.decodePublicKey((String) body.get("publicKey")),
-                    subjectDN,
-                    devEmail,
-                    partnerOrgName);
-        certificatePem = KeyUtility.toPem(signedCertificate);
+                .generateNewSignedCertificate(publicKeyToSign, subjectDN, devEmail, partnerOrgName);
+        certificatePem = KeyUtility.toPem(x509Cert);
+        log.info("Successfully generated new certificate for dev {}", devEmail);
       } else {
-        // user is uploading a previously-generated certifcate
-        certificatePem = (String) body.get("certificate");
-        signedCertificate = KeyUtility.decodeCertificate(certificatePem);
-        X509CertificateService.enforceClientCertificateConstraints(signedCertificate);
+        // User is uploading a previously-generated certificate
+        certificatePem = (String) payload.get("certificate");
+        x509Cert = KeyUtility.decodeCertificate(certificatePem);
+        X509CertificateService.enforceClientCertificateConstraints(x509Cert);
+        log.info("Successfully processed uploaded certificate for dev {}", devEmail);
       }
-
-      // Fetch attrs again (to be safe)
-      currentDevAttrs = apigeeGet(uri);
-
-      @SuppressWarnings("unchecked")
-      List<Map<String, Object>> attrlist =
-          (List<Map<String, Object>>) currentDevAttrs.get("attribute");
-      if (attrlist == null) {
-        attrlist = new ArrayList<>();
-      }
-      String fingerprint = KeyUtility.fingerprintBase64(signedCertificate);
-      verifyFingerprintUniqueness(fingerprint, attrlist);
-      String identifier = String.format("cert-%s", nowAsYyyyMmDdHHmmss());
-      attrlist.add(Map.of("name", identifier, "value", fingerprint));
-      System.out.printf("registerCertificate updating dev attrs...\n");
-      apigeePost(uri, Map.of("attribute", attrlist));
-      System.out.printf("registerCertificate updating dev attrs...DONE.\n");
-
-      Map<String, Object> response =
-          Map.of(
-              "pem",
-              certificatePem,
-              "fingerprint",
-              fingerprint,
-              "certificate-id",
-              identifier,
-              "subjectDN",
-              signedCertificate.getSubjectX500Principal().toString(),
-              "notBefore",
-              certDate(signedCertificate.getNotBefore()),
-              "notAfter",
-              certDate(signedCertificate.getNotAfter()));
-      ctx.status(200).json(response);
-    } catch (java.lang.IllegalArgumentException | KeyUtility.KeyParseException e) {
+      return Optional.of(new ProcessedCertificate(x509Cert, certificatePem));
+    } catch (KeyUtility.KeyParseException | IllegalArgumentException e) {
+      log.warn("Error processing/validating certificate/key: {}", e.getMessage());
       ctx.status(400).json(Map.of("error", e.getMessage()));
-      return;
-    } catch (Exception e) {
-      e.printStackTrace();
-      ctx.status(500).json(Map.of("error", "unhandled error"));
+      return Optional.empty();
+    } catch (Exception e) { // Catch broader exceptions from generation/service calls
+      log.error("Unexpected error during certificate generation/processing", e);
+      ctx.status(500)
+          .json(Map.of("error", "Internal server error during certificate processing."));
+      return Optional.empty();
+    }
+  }
+
+  private Optional<String> updateDeveloperAttributesWithCertificate(
+      Context ctx,
+      String devEmail,
+      X509Certificate certificate,
+      List<Map<String, Object>> currentAttributes)
+      throws IOException, InterruptedException, URISyntaxException {
+    try {
+      String fingerprint = KeyUtility.fingerprintBase64(certificate);
+      // The verifyFingerprintUniqueness method throws IllegalArgumentException if duplicate
+      verifyFingerprintUniqueness(fingerprint, currentAttributes);
+
+      String newCertificateIdentifier = String.format("cert-%s", nowAsYyyyMmDdHHmmss());
+
+      // Create a mutable list for attributes if it's not already or make a copy
+      List<Map<String, Object>> updatedAttributes = new ArrayList<>(currentAttributes);
+      updatedAttributes.add(Map.of("name", newCertificateIdentifier, "value", fingerprint));
+
+      String attributesUri = String.format("/developers/%s/attributes", devEmail);
+      apigeePost(attributesUri, Map.of("attribute", updatedAttributes));
+      log.info(
+          "Successfully updated developer attributes for {} with new certificate ID: {}",
+          devEmail,
+          newCertificateIdentifier);
+      return Optional.of(newCertificateIdentifier);
+    } catch (IllegalArgumentException e) { // Specifically for fingerprint uniqueness
+      log.warn(
+          "Failed to update developer attributes for {}: {}", devEmail, e.getMessage());
+      ctx.status(400).json(Map.of("error", e.getMessage()));
+      return Optional.empty();
+    } catch (Exception e) { // Catch other Apigee call or KeyUtility exceptions
+      log.error(
+          "Error updating developer attributes for {} with new certificate: {}",
+          devEmail,
+          e.getMessage(),
+          e);
+      ctx.status(500)
+          .json(Map.of("error", "Failed to update developer attributes with new certificate."));
+      return Optional.empty();
+    }
+  }
+
+  // --- End Helper methods for registerCertificate ---
+
+  /**
+   * POST /api/me/certificates
+   *
+   * <p>Expects a json with these members: publicKey - PEM-encoded public key keyId - arbitrary
+   * string identifying the key OR certificate - PEM-encoded certificate
+   */
+  public void registerCertificate(final Context ctx)
+      throws IOException, InterruptedException, URISyntaxException {
+    String devEmail = ctx.attribute("userEmail");
+    String userName = ctx.attribute("name"); // Full name from session
+
+    if (devEmail == null || devEmail.isBlank() || userName == null || userName.isBlank()) {
+      log.warn("User details (email, name) not found in context for registerCertificate.");
+      ctx.status(500).json("Internal server error: User details not found in session.");
       return;
     }
+    log.info("Attempting to register certificate for developer: {}", devEmail);
+
+    Optional<Map<String, Object>> payloadOptional =
+        parseAndValidateRegisterCertificateRequest(ctx);
+    if (payloadOptional.isEmpty()) {
+      return; // Error handled in helper
+    }
+    Map<String, Object> payload = payloadOptional.get();
+
+    Optional<List<Map<String, Object>>> attributesOptional =
+        checkCertificateLimitAndGetAttributes(ctx, devEmail);
+    if (attributesOptional.isEmpty()) {
+      return; // Error handled in helper
+    }
+    List<Map<String, Object>> currentDevAttrs = attributesOptional.get();
+
+    Optional<ProcessedCertificate> processedCertOptional =
+        generateOrUploadCertificate(ctx, devEmail, userName, payload, currentDevAttrs);
+    if (processedCertOptional.isEmpty()) {
+      return; // Error handled in helper
+    }
+    ProcessedCertificate processedCert = processedCertOptional.get();
+
+    // Fetch attributes again before updating to minimize race conditions,
+    // though a small window still exists. For higher consistency, a more
+    // complex locking or conditional update mechanism via Apigee would be needed.
+    // For this example, we'll re-fetch.
+    String attributesUri = String.format("/developers/%s/attributes", devEmail);
+    Map<String, Object> freshDevAttrsResponse = apigeeGet(attributesUri);
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> freshDevAttrs =
+        (List<Map<String, Object>>) freshDevAttrsResponse.get("attribute");
+    if (freshDevAttrs == null) {
+      freshDevAttrs = new ArrayList<>();
+    }
+
+    Optional<String> newCertIdOptional =
+        updateDeveloperAttributesWithCertificate(
+            ctx, devEmail, processedCert.certificate(), freshDevAttrs);
+    if (newCertIdOptional.isEmpty()) {
+      return; // Error handled in helper
+    }
+    String newCertificateIdentifier = newCertIdOptional.get();
+
+    Map<String, Object> response =
+        Map.of(
+            "pem",
+            processedCert.pem(),
+            "fingerprint",
+            KeyUtility.fingerprintBase64(processedCert.certificate()),
+            "certificate-id",
+            newCertificateIdentifier,
+            "subjectDN",
+            processedCert.certificate().getSubjectX500Principal().toString(),
+            "notBefore",
+            certDate(processedCert.certificate().getNotBefore()),
+            "notAfter",
+            certDate(processedCert.certificate().getNotAfter()));
+    ctx.status(200).json(response);
   }
 
   /**
