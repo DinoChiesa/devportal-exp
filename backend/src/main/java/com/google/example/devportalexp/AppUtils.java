@@ -42,6 +42,10 @@ public class AppUtils {
    *     null if not found.
    * @throws IOException If an I/O error occurs.
    */
+
+  //  AI! Extract processCandidates into a private static helper. Also extract the logic for "file"
+  // and "jar" protocols into smaller helper methods to improve readability.
+
   public static String findResourceNameByPattern(String globPattern) throws IOException {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     if (classLoader == null) {
