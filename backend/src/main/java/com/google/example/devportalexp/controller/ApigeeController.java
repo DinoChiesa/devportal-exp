@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 public class ApigeeController {
   public static final int MAX_CERTIFICATES = 4;
   public static final int MAX_DEVELOPER_APPS = 4;
+  private static final int MAX_API_PRODUCTS_PER_APP = 5;
   private static final Logger log = LoggerFactory.getLogger(ApigeeController.class);
   private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
   private static final Type mapType = new TypeToken<HashMap<String, Object>>() {}.getType();
@@ -390,42 +391,30 @@ public class ApigeeController {
     return Optional.of(minExpirySeconds); // Return calculated minimum expiry
   }
 
-  /** POST /api/me/apps */
-  public void createDeveloperApp(final Context ctx)
-      throws IOException, InterruptedException, URISyntaxException {
-    String devEmail = ctx.attribute("userEmail");
+  // --- Helper methods for createDeveloperApp ---
 
-    if (devEmail == null || devEmail.isBlank()) {
-      // This shouldn't happen if the before filter is working correctly
-      System.err.println("Error: userEmail not found in context.");
-      ctx.status(500).json("Internal server error: User email not found.");
-      return;
-    }
-
-    // Verify Content-Type
+  private Map<String, Object> getValidPayload(Context ctx) {
     String contentType = ctx.contentType();
     if (contentType == null || !contentType.toLowerCase().contains("application/json")) {
       System.err.printf("Error: Invalid Content-Type: %s\n", contentType);
       ctx.status(415).json(Map.of("error", "Request must be application/json"));
-      return;
+      return null;
     }
-
-    // Parse JSON payload into a Map
-    Map<String, Object> payloadMap;
 
     try {
       @SuppressWarnings("unchecked")
-      Map<String, Object> castedValue = (Map<String, Object>) ctx.bodyAsClass(Map.class);
-      payloadMap = castedValue;
-
+      Map<String, Object> payloadMap = (Map<String, Object>) ctx.bodyAsClass(Map.class);
+      return payloadMap;
     } catch (Exception e) {
       System.err.printf(
           "Error parsing create app request body or extracting fields: %s\n", e.getMessage());
       ctx.status(400).json(Map.of("error", "Invalid JSON payload or structure"));
-      return;
+      return null;
     }
+  }
 
-    // --- App Limit Check ---
+  private boolean checkAppLimit(Context ctx, String devEmail)
+      throws IOException, InterruptedException, URISyntaxException {
     try {
       String appsUri = String.format("/developers/%s/apps", devEmail);
       Map<String, Object> currentAppsResponse = apigeeGet(appsUri);
@@ -444,21 +433,24 @@ public class ApigeeController {
                     String.format(
                         "Maximum number of developer apps (%d) already registered.",
                         MAX_DEVELOPER_APPS)));
-        return;
+        return false;
       }
       System.out.printf(
           "Developer %s has %d apps, proceeding with app creation.\n", devEmail, appCount);
-
+      return true;
+    } catch (IOException | InterruptedException | URISyntaxException e) {
+      // Re-throw exceptions related to the Apigee call to be handled by the main method's catch-all
+      throw e;
     } catch (Exception e) {
-      // Handle potential errors during the app count check
+      // Handle other potential errors during the app count check
       System.err.printf(
           "Error checking app count for developer %s: %s\n", devEmail, e.getMessage());
       ctx.status(500).json(Map.of("error", "Failed to verify current app count."));
-      return;
+      return false;
     }
-    // --- End App Limit Check ---
+  }
 
-    // --- API Product Validation ---
+  private Optional<List<String>> getValidApiProducts(Context ctx, Map<String, Object> payloadMap) {
     List<String> apiProducts = null;
     Object apiProductsObj = payloadMap.get("apiProducts");
     if (apiProductsObj instanceof List) {
@@ -470,48 +462,87 @@ public class ApigeeController {
       }
     }
 
-    // Validate presence and count (1 to 5)
+    // Validate presence and count
     if (apiProducts == null || apiProducts.isEmpty()) {
       System.err.println("Error: 'apiProducts' field is missing, empty, or not a list of strings.");
       ctx.status(400).json(Map.of("error", "Request must include a non-empty 'apiProducts' list."));
-      return;
+      return Optional.empty();
     }
 
-    if (apiProducts.size() > 5) {
+    if (apiProducts.size() > MAX_API_PRODUCTS_PER_APP) {
       System.err.printf(
-          "Error: Too many API products requested (%d). Maximum allowed is 5.\n",
-          apiProducts.size());
+          "Error: Too many API products requested (%d). Maximum allowed is %d.\n",
+          apiProducts.size(), MAX_API_PRODUCTS_PER_APP);
       ctx.status(400)
           .json(
               Map.of(
                   "error",
                   String.format(
-                      "Too many API products selected (%d). Maximum allowed is 5.",
-                      apiProducts.size())));
-      return;
+                      "Too many API products selected (%d). Maximum allowed is %d.",
+                      apiProducts.size(), MAX_API_PRODUCTS_PER_APP)));
+      return Optional.empty();
     }
-    // --- End API Product Validation ---
+    return Optional.of(apiProducts);
+  }
 
+  private boolean prepareAppCreationPayload(
+      Context ctx, Map<String, Object> payloadMap, List<String> apiProducts)
+      throws IOException, InterruptedException, URISyntaxException {
     // Calculate minimum key expiry based on selected API products
     Optional<Long> minExpiryOptional = calculateMinimumKeyExpirySeconds(apiProducts);
     if (minExpiryOptional.isEmpty()) {
-      // The cause will have been logged in the helper method.
+      // The cause will have been logged in the calculateMinimumKeyExpirySeconds helper method.
       // We return 500 here as the overall operation failed.
-      ctx.status(500).json(Map.of("error", "Failed to process API product details."));
-      return;
+      ctx.status(500).json(Map.of("error", "Failed to process API product details for key expiry."));
+      return false;
     }
 
     // Add keyExpiresIn to the payload if a minimum finite expiry was found
     long minExpirySeconds = minExpiryOptional.get();
     if (minExpirySeconds != -1) {
       System.out.printf(
-          "Setting 'keyExpiresIn' in request payload to %d seconds.\n", minExpirySeconds);
+          "Setting 'keyExpiresIn' in request payload to %d milliseconds.\n",
+          minExpirySeconds * 1000);
+      // Apigee expects keyExpiresIn in milliseconds
       payloadMap.put("keyExpiresIn", String.valueOf(minExpirySeconds * 1000));
     }
 
     // Ensure standard attributes are present
     payloadMap.putIfAbsent(
         "attributes", List.of(Map.of("name", "createdBy", "value", "devportal-exp")));
+    return true;
+  }
+
+  // --- End Helper methods for createDeveloperApp ---
+
+  /** POST /api/me/apps */
+  public void createDeveloperApp(final Context ctx)
+      throws IOException, InterruptedException, URISyntaxException {
+    String devEmail = ctx.attribute("userEmail");
+    if (devEmail == null || devEmail.isBlank()) {
+      System.err.println("Error: userEmail not found in context.");
+      ctx.status(500).json("Internal server error: User email not found.");
+      return;
+    }
+
+    Map<String, Object> payloadMap = getValidPayload(ctx);
+    if (payloadMap == null) {
+      return; // Error already handled by helper
+    }
+
+    if (!checkAppLimit(ctx, devEmail)) {
+      return; // Error already handled by helper
+    }
+
+    Optional<List<String>> apiProductsOptional = getValidApiProducts(ctx, payloadMap);
+    if (apiProductsOptional.isEmpty()) {
+      return; // Error already handled by helper
+    }
+    List<String> apiProducts = apiProductsOptional.get();
+
+    if (!prepareAppCreationPayload(ctx, payloadMap, apiProducts)) {
+      return; // Error already handled by helper
+    }
 
     // Create the developer app.
     Map<String, Object> appDetails =
