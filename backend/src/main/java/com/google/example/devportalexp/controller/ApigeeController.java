@@ -91,7 +91,7 @@ public class ApigeeController {
    */
   private Object loadGcpAccessToken(String ignoredKey) {
     if (StateService.isRunningInCloud()) {
-      System.out.println("Running in Cloud Run, fetching token from metadata server...");
+      log.info("Running in Cloud Run, fetching token from metadata server...");
       String metadataUrl =
           "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
       try {
@@ -100,18 +100,17 @@ public class ApigeeController {
           Map<String, Object> tokenResponse = gson.fromJson(responseBody, mapType);
           if (tokenResponse != null && tokenResponse.containsKey("access_token")) {
             String accessToken = (String) tokenResponse.get("access_token");
-            System.out.println("Successfully fetched token from metadata server.");
+            log.info("Successfully fetched token from metadata server.");
             return accessToken;
           }
         }
       } catch (Exception e) {
-        System.err.println(
-            "Unexpected error fetching/parsing token from metadata server: " + e.getMessage());
-        e.printStackTrace();
+        log.error(
+            "Unexpected error fetching/parsing token from metadata server: {}", e.getMessage(), e);
       }
       return null;
     }
-    System.out.println("Not running in Cloud Run, using gcloud for token...");
+    log.info("Not running in Cloud Run, using gcloud for token...");
     return executeCommand(
         "gcloud",
         "auth",
@@ -124,7 +123,7 @@ public class ApigeeController {
   private static String fetch(
       String uri, String method, Map<String, String> requestHeaders, Map<String, Object> payload)
       throws URISyntaxException, IOException, InterruptedException {
-    System.out.printf("*** fetch [%s %s]...\n", method, uri);
+    log.debug("*** fetch [{} {}]...", method, uri);
 
     HttpRequest.Builder builder = HttpRequest.newBuilder().uri(new URI(uri));
     if (requestHeaders != null) {
@@ -150,9 +149,9 @@ public class ApigeeController {
     HttpClient client = HttpClient.newHttpClient();
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
     HttpHeaders responseHeaders = response.headers();
-    System.out.printf("response headers:\n%s\n", responseHeaders.toString());
+    log.debug("Response headers:\n{}", responseHeaders.toString());
     String body = response.body();
-    System.out.printf("\n\n=>\n%s\n", body);
+    log.debug("\n\n=>\n{}", body);
     return body;
   }
 
@@ -201,8 +200,7 @@ public class ApigeeController {
     try {
 
       ProcessBuilder processBuilder = new ProcessBuilder(command);
-      System.out.println(
-          "Executing command: " + String.join(" ", command)); // Log the command being run
+      log.info("Executing command: {}", String.join(" ", command)); // Log the command being run
 
       Function<InputStream, String> slurp =
           inputStream -> {
@@ -218,8 +216,7 @@ public class ApigeeController {
               }
               return output.toString().trim();
             } catch (java.lang.Exception exc1) {
-              System.out.println("Exception:" + exc1.toString());
-              exc1.printStackTrace();
+              log.error("Exception in slurp: {}", exc1.toString(), exc1);
               return null;
             }
           };
@@ -244,8 +241,7 @@ public class ApigeeController {
 
       return output;
     } catch (java.lang.Exception exc1) {
-      System.out.println("Exception:" + exc1.toString());
-      exc1.printStackTrace();
+      log.error("Exception executing command: {}", exc1.toString(), exc1);
     }
     return null;
   }
@@ -269,15 +265,14 @@ public class ApigeeController {
               })
           .collect(Collectors.toList());
     } catch (java.lang.Exception exc1) {
-      System.out.println("Exception:" + exc1.toString());
-      exc1.printStackTrace();
+      log.error("Exception loading products: {}", exc1.toString(), exc1);
       throw new RuntimeException("uncaught exception", exc1);
     }
   }
 
   /** GET /api/apiproducts */
   public void getAllApiProducts(final Context ctx) {
-    System.out.println("GET /api/apiproducts");
+    log.info("GET /api/apiproducts");
     @SuppressWarnings("unchecked")
     List<ApiProduct> apiProducts = (List<ApiProduct>) CacheService.getInstance().get("apiproducts");
     ctx.json((apiProducts != null) ? apiProducts : Collections.emptyList());
@@ -287,7 +282,7 @@ public class ApigeeController {
   public void getDeveloperApps(final Context ctx)
       throws IOException, InterruptedException, URISyntaxException {
     // Session is valid, add user info to context if needed
-    System.out.println("GET /api/me/apps");
+    log.info("GET /api/me/apps");
     String devEmail = ctx.attribute("userEmail");
     Map<String, Object> devResponse = apigeeGet("/developers/" + devEmail);
     @SuppressWarnings("unchecked")
@@ -303,11 +298,11 @@ public class ApigeeController {
 
     if (devEmail == null || devEmail.isBlank()) {
       // This shouldn't happen if the before filter is working correctly
-      System.err.println("Error: userEmail not found in context for getDeveloperApp.");
+      log.error("userEmail not found in context for getDeveloperApp.");
       ctx.status(500).json("Internal server error: User email not found.");
       return;
     }
-    System.out.printf("fetch app details for userEmail %s app %s\n", devEmail, appName);
+    log.info("Fetching app details for userEmail {} app {}", devEmail, appName);
     Map<String, Object> appDetails =
         apigeeGet(String.format("/developers/%s/apps/%s", devEmail, appName));
     ctx.json(appDetails);
@@ -325,12 +320,12 @@ public class ApigeeController {
   private Optional<Long> calculateMinimumKeyExpirySeconds(List<String> apiProducts) {
     // Assumes apiProducts list is non-null, non-empty, and size-validated by the caller.
 
-    System.out.printf("Processing %d API products for key expiry...\n", apiProducts.size());
+    log.info("Processing {} API products for key expiry...", apiProducts.size());
     long minExpirySeconds = -1L; // -1 indicates no limit found yet or infinite
 
     for (String productName : apiProducts) {
       try {
-        System.out.printf("Fetching details for API product: %s\n", productName);
+        log.info("Fetching details for API product: {}", productName);
         Map<String, Object> productDetails = apigeeGet("/apiproducts/" + productName);
 
         @SuppressWarnings("unchecked")
@@ -349,13 +344,13 @@ public class ApigeeController {
 
           if (lifetimeValue.isPresent()) {
             String timespanStr = lifetimeValue.get();
-            System.out.printf(
-                "Found 'max-key-lifetime' attribute for product %s: %s\n",
+            log.info(
+                "Found 'max-key-lifetime' attribute for product {}: {}",
                 productName, timespanStr);
             try {
               long currentProductExpirySeconds = parseTimespanToSeconds(timespanStr);
-              System.out.printf(
-                  "Parsed expiry for %s to %d seconds\n", productName, currentProductExpirySeconds);
+              log.info(
+                  "Parsed expiry for {} to {} seconds", productName, currentProductExpirySeconds);
 
               if (currentProductExpirySeconds != -1) { // If the current product has a limit
                 if (minExpirySeconds == -1
@@ -363,30 +358,33 @@ public class ApigeeController {
                   // found or smaller than
                   // current min
                   minExpirySeconds = currentProductExpirySeconds;
-                  System.out.printf("New minimum expiry set to %d seconds\n", minExpirySeconds);
+                  log.info("New minimum expiry set to {} seconds", minExpirySeconds);
                 }
               }
               // If currentProductExpirySeconds is -1 (no limit for this product), it doesn't
               // affect the minimum unless minExpirySeconds is still -1.
             } catch (IllegalArgumentException e) {
-              System.err.printf(
-                  "Warning: Could not parse 'max-key-lifetime' value '%s' for product %s: %s\n",
-                  timespanStr, productName, e.getMessage());
+              log.warn(
+                  "Could not parse 'max-key-lifetime' value '{}' for product {}: {}",
+                  timespanStr,
+                  productName,
+                  e.getMessage());
               // Currently ignoring parse errors and proceeding.
             }
           } else {
-            System.out.printf(
-                "No 'max-key-lifetime' attribute found for product %s. Assuming no limit.\n",
+            log.info(
+                "No 'max-key-lifetime' attribute found for product {}. Assuming no limit.",
                 productName);
           }
         } else {
-          System.out.printf(
-              "No attributes found for product %s. Assuming no limit.\n", productName);
+          log.info("No attributes found for product {}. Assuming no limit.", productName);
         }
       } catch (Exception e) {
-        System.err.printf(
-            "Error fetching or processing details for API product %s: %s\n",
-            productName, e.getMessage());
+        log.error(
+            "Error fetching or processing details for API product {}: {}",
+            productName,
+            e.getMessage(),
+            e);
         // Fail fast if product details cannot be fetched/processed
         // Return empty optional to signal error to the caller.
         return Optional.empty();
@@ -400,7 +398,7 @@ public class ApigeeController {
   private Map<String, Object> getValidPayload(Context ctx) {
     String contentType = ctx.contentType();
     if (contentType == null || !contentType.toLowerCase().contains("application/json")) {
-      System.err.printf("Error: Invalid Content-Type: %s\n", contentType);
+      log.warn("Invalid Content-Type: {}", contentType);
       ctx.status(415).json(Map.of("error", "Request must be application/json"));
       return null;
     }
@@ -410,8 +408,8 @@ public class ApigeeController {
       Map<String, Object> payloadMap = (Map<String, Object>) ctx.bodyAsClass(Map.class);
       return payloadMap;
     } catch (Exception e) {
-      System.err.printf(
-          "Error parsing create app request body or extracting fields: %s\n", e.getMessage());
+      log.warn(
+          "Error parsing create app request body or extracting fields: {}", e.getMessage(), e);
       ctx.status(400).json(Map.of("error", "Invalid JSON payload or structure"));
       return null;
     }
@@ -427,9 +425,11 @@ public class ApigeeController {
       int appCount = (currentAppList != null) ? currentAppList.size() : 0;
 
       if (appCount >= MAX_DEVELOPER_APPS) {
-        System.err.printf(
-            "Error: Developer %s already has %d apps (limit is %d).\n",
-            devEmail, appCount, MAX_DEVELOPER_APPS);
+        log.warn(
+            "Developer {} already has {} apps (limit is {}).",
+            devEmail,
+            appCount,
+            MAX_DEVELOPER_APPS);
         ctx.status(400)
             .json(
                 Map.of(
@@ -439,16 +439,14 @@ public class ApigeeController {
                         MAX_DEVELOPER_APPS)));
         return false;
       }
-      System.out.printf(
-          "Developer %s has %d apps, proceeding with app creation.\n", devEmail, appCount);
+      log.info("Developer {} has {} apps, proceeding with app creation.", devEmail, appCount);
       return true;
     } catch (IOException | InterruptedException | URISyntaxException e) {
       // Re-throw exceptions related to the Apigee call to be handled by the main method's catch-all
       throw e;
     } catch (Exception e) {
       // Handle other potential errors during the app count check
-      System.err.printf(
-          "Error checking app count for developer %s: %s\n", devEmail, e.getMessage());
+      log.error("Error checking app count for developer {}: {}", devEmail, e.getMessage(), e);
       ctx.status(500).json(Map.of("error", "Failed to verify current app count."));
       return false;
     }
@@ -468,15 +466,16 @@ public class ApigeeController {
 
     // Validate presence and count
     if (apiProducts == null || apiProducts.isEmpty()) {
-      System.err.println("Error: 'apiProducts' field is missing, empty, or not a list of strings.");
+      log.warn("'apiProducts' field is missing, empty, or not a list of strings.");
       ctx.status(400).json(Map.of("error", "Request must include a non-empty 'apiProducts' list."));
       return Optional.empty();
     }
 
     if (apiProducts.size() > MAX_API_PRODUCTS_PER_APP) {
-      System.err.printf(
-          "Error: Too many API products requested (%d). Maximum allowed is %d.\n",
-          apiProducts.size(), MAX_API_PRODUCTS_PER_APP);
+      log.warn(
+          "Too many API products requested ({}). Maximum allowed is {}.",
+          apiProducts.size(),
+          MAX_API_PRODUCTS_PER_APP);
       ctx.status(400)
           .json(
               Map.of(
@@ -505,8 +504,8 @@ public class ApigeeController {
     // Add keyExpiresIn to the payload if a minimum finite expiry was found
     long minExpirySeconds = minExpiryOptional.get();
     if (minExpirySeconds != -1) {
-      System.out.printf(
-          "Setting 'keyExpiresIn' in request payload to %d milliseconds.\n",
+      log.info(
+          "Setting 'keyExpiresIn' in request payload to {} milliseconds.",
           minExpirySeconds * 1000);
       // Apigee expects keyExpiresIn in milliseconds
       payloadMap.put("keyExpiresIn", String.valueOf(minExpirySeconds * 1000));
@@ -525,7 +524,7 @@ public class ApigeeController {
       throws IOException, InterruptedException, URISyntaxException {
     String devEmail = ctx.attribute("userEmail");
     if (devEmail == null || devEmail.isBlank()) {
-      System.err.println("Error: userEmail not found in context.");
+      log.error("userEmail not found in context.");
       ctx.status(500).json("Internal server error: User email not found.");
       return;
     }
@@ -601,8 +600,7 @@ public class ApigeeController {
       }
       ctx.status(200).json(devDetails);
     } catch (Exception e) {
-      log.warn(String.format("Exception while getting details for %s", devEmail));
-      e.printStackTrace();
+      log.warn(String.format("Exception while getting details for %s", devEmail), e);
       ctx.status(500).json(Map.of("error", "Invalid JSON payload or structure"));
       return;
     }
@@ -693,7 +691,7 @@ public class ApigeeController {
     String lastName = ctx.attribute("lastName");
 
     if (devEmail == null || devEmail.isBlank() || firstName == null || lastName == null) {
-      System.err.println("Error: User details (email, firstName, lastName) not found in context.");
+      log.error("User details (email, firstName, lastName) not found in context.");
       ctx.status(500).json("Internal server error: User details not found in session.");
       return;
     }
@@ -704,9 +702,12 @@ public class ApigeeController {
             "%s-%s-%04d",
             firstName.toLowerCase(), lastName.toLowerCase(), new java.util.Random().nextInt(10000));
 
-    System.out.printf(
-        "Creating developer: email=%s, firstName=%s, lastName=%s, userName=%s\n",
-        devEmail, firstName, lastName, userName);
+    log.info(
+        "Creating developer: email={}, firstName={}, lastName={}, userName={}",
+        devEmail,
+        firstName,
+        lastName,
+        userName);
 
     try {
       // Use retrieved/generated values in the payload
@@ -733,7 +734,7 @@ public class ApigeeController {
       // --------------------------------------------
       ctx.status(201).json(responsePayload);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Error creating new developer", e);
       ctx.status(500).json(Map.of("error", "unhandled error"));
       return;
     }
@@ -1008,8 +1009,8 @@ public class ApigeeController {
     } catch (NoSuchProviderException
         | NoSuchAlgorithmException
         | CertificateEncodingException exc1) {
-      System.out.println("Exception:" + exc1.toString());
-      exc1.printStackTrace();
+      log.error(
+          "Exception during certificate registration finalization: {}", exc1.toString(), exc1);
       ctx.status(500).json("Internal server error hwile registering a certificate.");
     }
   }
@@ -1051,12 +1052,12 @@ public class ApigeeController {
       throws IOException, InterruptedException, URISyntaxException {
     String devEmail = ctx.attribute("userEmail");
     if (devEmail == null || devEmail.isBlank()) {
-      System.err.println("Error: userEmail not found in context.");
+      log.error("userEmail not found in context.");
       ctx.status(500).json("Internal server error: User email not found.");
       return;
     }
     String certId = ctx.pathParam("certId");
-    System.out.printf("deregisterCertificate [%s %s]...\n", devEmail, certId);
+    log.info("deregisterCertificate [{} {}]...", devEmail, certId);
 
     try {
       // get and put
@@ -1085,7 +1086,7 @@ public class ApigeeController {
       apigeePost(uri, Map.of("attribute", attrsToKeep));
       ctx.status(200).json(Collections.emptyMap());
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Error deregistering certificate", e);
       ctx.status(500).json(Map.of("error", "unhandled error"));
       return;
     }
@@ -1111,27 +1112,26 @@ public class ApigeeController {
     String devEmail = ctx.attribute("userEmail");
 
     if (devEmail == null || devEmail.isBlank()) {
-      System.err.println("Error: userEmail not found in context for deleteDeveloperApp.");
+      log.error("userEmail not found in context for deleteDeveloperApp.");
       ctx.status(500).json("Internal server error: User email not found.");
       return;
     }
     if (appName == null || appName.isBlank()) {
-      System.err.println("Error: appName not found in path parameters.");
+      log.error("appName not found in path parameters.");
       ctx.status(400).json("Bad request: App name missing.");
       return;
     }
 
-    System.out.printf("DELETE /api/me/apps/%s for developer %s\n", appName, devEmail);
+    log.info("DELETE /api/me/apps/{} for developer {}", appName, devEmail);
 
     try {
       String path = String.format("/developers/%s/apps/%s", devEmail, appName);
       apigeeFetch(path, "DELETE", null);
-      System.out.printf("Successfully deleted app %s for developer %s\n", appName, devEmail);
+      log.info("Successfully deleted app {} for developer {}", appName, devEmail);
       ctx.status(204);
     } catch (Exception e) {
       // Handle potential errors, e.g., app not found (404 from Apigee), permission issues
-      System.err.printf(
-          "Error deleting app %s for developer %s: %s\n", appName, devEmail, e.getMessage());
+      log.error("Error deleting app {} for developer {}: {}", appName, devEmail, e.getMessage(), e);
       // TODO: Check if the error is due to the app not existing (this might depend on how
       // apigeeFetch handles HTTP errors) and return 404 if appropriate.
       // For now, return a generic 500.
