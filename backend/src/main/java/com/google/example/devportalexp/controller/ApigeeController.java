@@ -37,6 +37,10 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -493,7 +497,8 @@ public class ApigeeController {
     if (minExpiryOptional.isEmpty()) {
       // The cause will have been logged in the calculateMinimumKeyExpirySeconds helper method.
       // We return 500 here as the overall operation failed.
-      ctx.status(500).json(Map.of("error", "Failed to process API product details for key expiry."));
+      ctx.status(500)
+          .json(Map.of("error", "Failed to process API product details for key expiry."));
       return false;
     }
 
@@ -781,8 +786,7 @@ public class ApigeeController {
   }
 
   private Optional<List<Map<String, Object>>> checkCertificateLimitAndGetAttributes(
-      Context ctx, String devEmail)
-      throws IOException, InterruptedException, URISyntaxException {
+      Context ctx, String devEmail) throws IOException, InterruptedException, URISyntaxException {
     String attributesUri = String.format("/developers/%s/attributes", devEmail);
     Map<String, Object> currentDevAttrsResponse = apigeeGet(attributesUri);
 
@@ -859,8 +863,7 @@ public class ApigeeController {
                 partnerOrgName,
                 (String) payload.get("keyId"));
 
-        PublicKey publicKeyToSign =
-            KeyUtility.decodePublicKey((String) payload.get("publicKey"));
+        PublicKey publicKeyToSign = KeyUtility.decodePublicKey((String) payload.get("publicKey"));
         x509Cert =
             X509CertificateService.getInstance()
                 .generateNewSignedCertificate(publicKeyToSign, subjectDN, devEmail, partnerOrgName);
@@ -880,8 +883,7 @@ public class ApigeeController {
       return Optional.empty();
     } catch (Exception e) { // Catch broader exceptions from generation/service calls
       log.error("Unexpected error during certificate generation/processing", e);
-      ctx.status(500)
-          .json(Map.of("error", "Internal server error during certificate processing."));
+      ctx.status(500).json(Map.of("error", "Internal server error during certificate processing."));
       return Optional.empty();
     }
   }
@@ -911,8 +913,7 @@ public class ApigeeController {
           newCertificateIdentifier);
       return Optional.of(newCertificateIdentifier);
     } catch (IllegalArgumentException e) { // Specifically for fingerprint uniqueness
-      log.warn(
-          "Failed to update developer attributes for {}: {}", devEmail, e.getMessage());
+      log.warn("Failed to update developer attributes for {}: {}", devEmail, e.getMessage());
       ctx.status(400).json(Map.of("error", e.getMessage()));
       return Optional.empty();
     } catch (Exception e) { // Catch other Apigee call or KeyUtility exceptions
@@ -947,8 +948,7 @@ public class ApigeeController {
     }
     log.info("Attempting to register certificate for developer: {}", devEmail);
 
-    Optional<Map<String, Object>> payloadOptional =
-        parseAndValidateRegisterCertificateRequest(ctx);
+    Optional<Map<String, Object>> payloadOptional = parseAndValidateRegisterCertificateRequest(ctx);
     if (payloadOptional.isEmpty()) {
       return; // Error handled in helper
     }
@@ -989,21 +989,29 @@ public class ApigeeController {
     }
     String newCertificateIdentifier = newCertIdOptional.get();
 
-    Map<String, Object> response =
-        Map.of(
-            "pem",
-            processedCert.pem(),
-            "fingerprint",
-            KeyUtility.fingerprintBase64(processedCert.certificate()),
-            "certificate-id",
-            newCertificateIdentifier,
-            "subjectDN",
-            processedCert.certificate().getSubjectX500Principal().toString(),
-            "notBefore",
-            certDate(processedCert.certificate().getNotBefore()),
-            "notAfter",
-            certDate(processedCert.certificate().getNotAfter()));
-    ctx.status(200).json(response);
+    try {
+      Map<String, Object> response =
+          Map.of(
+              "pem",
+              processedCert.pem(),
+              "fingerprint",
+              KeyUtility.fingerprintBase64(processedCert.certificate()),
+              "certificate-id",
+              newCertificateIdentifier,
+              "subjectDN",
+              processedCert.certificate().getSubjectX500Principal().toString(),
+              "notBefore",
+              certDate(processedCert.certificate().getNotBefore()),
+              "notAfter",
+              certDate(processedCert.certificate().getNotAfter()));
+      ctx.status(200).json(response);
+    } catch (NoSuchProviderException
+        | NoSuchAlgorithmException
+        | CertificateEncodingException exc1) {
+      System.out.println("Exception:" + exc1.toString());
+      exc1.printStackTrace();
+      ctx.status(500).json("Internal server error hwile registering a certificate.");
+    }
   }
 
   /**
