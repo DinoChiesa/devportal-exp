@@ -69,6 +69,7 @@ public class App {
     }
   }
 
+  // AI! Simplify the implementation for getMimeType if possible.
   private static String getMimeType(final String resourcePath) {
     if (resourcePath.endsWith(".png")) return "image/png";
     if (resourcePath.endsWith(".webp")) return "image/webp";
