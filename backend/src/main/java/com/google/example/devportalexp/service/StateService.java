@@ -15,9 +15,9 @@
 
 package com.google.example.devportalexp.service;
 
+import com.google.example.devportalexp.AppUtils;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -52,9 +52,7 @@ public class StateService {
                   .create()
                   .fromJson(
                       new String(
-                          com.google.example.devportalexp.AppUtils.getResourceAsStream(
-                                  "conf/settings.json")
-                              .readAllBytes(),
+                          AppUtils.getResourceAsStream("conf/settings.json").readAllBytes(),
                           StandardCharsets.UTF_8),
                       mapType);
       settings = castable;
