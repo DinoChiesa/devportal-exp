@@ -69,21 +69,33 @@ public class App {
     }
   }
 
-  // AI! Simplify the implementation for getMimeType if possible.
+  private static final Map<String, String> MIME_TYPE_MAP =
+      Map.of(
+          ".png", "image/png",
+          ".webp", "image/webp",
+          ".jpg", "image/jpeg",
+          ".jpeg", "image/jpeg", // Added .jpeg as common alternative
+          ".js", "text/javascript",
+          ".map", "text/javascript", // Source maps often served as application/json or text/javascript
+          ".svg", "image/svg+xml",
+          ".html", "text/html",
+          ".css", "text/css");
+  private static final String DEFAULT_MIME_TYPE = "text/plain";
+
   private static String getMimeType(final String resourcePath) {
-    if (resourcePath.endsWith(".png")) return "image/png";
-    if (resourcePath.endsWith(".webp")) return "image/webp";
-    if (resourcePath.endsWith(".jpg")) return "image/jpeg";
-    Supplier<String> textMimeType =
-        () -> {
-          if (resourcePath.endsWith(".js") || resourcePath.endsWith(".map"))
-            return "text/javascript";
-          if (resourcePath.endsWith(".svg")) return "image/svg+xml";
-          if (resourcePath.endsWith(".html")) return "text/html";
-          if (resourcePath.endsWith(".css")) return "text/css";
-          return "text/plain";
-        };
-    return textMimeType.get() + "; charset=utf-8";
+    String extension = "";
+    int i = resourcePath.lastIndexOf('.');
+    if (i > 0) {
+      extension = resourcePath.substring(i);
+    }
+
+    String mimeType = MIME_TYPE_MAP.getOrDefault(extension.toLowerCase(), DEFAULT_MIME_TYPE);
+
+    // Append charset for text-based types
+    if (mimeType.startsWith("text/") || mimeType.equals("application/javascript") || mimeType.equals("image/svg+xml")) {
+      return mimeType + "; charset=utf-8";
+    }
+    return mimeType;
   }
 
   private static void applyResponseHeaders(final Context ctx, final String resourcePath) {
