@@ -30,19 +30,6 @@ public class StateService {
   private static final Map<String, String> environmentVariables =
       Map.of("APIGEE_PROJECT", "project");
 
-  private static InputStream getResourceAsStream(String resourceName) {
-    // forcibly prepend a slash. not sure if necessary.
-    if (!resourceName.startsWith("/")) {
-      resourceName = "/" + resourceName;
-    }
-    if (!resourceName.startsWith("/resources")) {
-      resourceName = "/resources" + resourceName;
-    }
-    System.out.printf("getResourceAsStream %s\n", resourceName);
-    InputStream in = StateService.class.getResourceAsStream(resourceName);
-    return in;
-  }
-
   public static StateService getInstance() {
     if (instance == null) {
       instance = new StateService();
@@ -65,7 +52,9 @@ public class StateService {
                   .create()
                   .fromJson(
                       new String(
-                          getResourceAsStream("conf/settings.json").readAllBytes(),
+                          com.google.example.devportalexp.AppUtils.getResourceAsStream(
+                                  "conf/settings.json")
+                              .readAllBytes(),
                           StandardCharsets.UTF_8),
                       mapType);
       settings = castable;

@@ -133,4 +133,26 @@ public class AppUtils {
     LocalDate nextYearSameDay = today.plusYears(1);
     return (int) ChronoUnit.DAYS.between(today, nextYearSameDay);
   }
+
+  /**
+   * Retrieves a resource stream from the classpath. Ensures the path starts with "/resources/" if
+   * not already, and always prepends a leading slash if missing.
+   *
+   * @param resourceName The name of the resource.
+   * @return An InputStream for the resource, or null if not found.
+   */
+  public static java.io.InputStream getResourceAsStream(String resourceName) {
+    // forcibly prepend a slash. not sure if necessary.
+    if (!resourceName.startsWith("/")) {
+      resourceName = "/" + resourceName;
+    }
+    if (!resourceName.startsWith("/resources")) {
+      resourceName = "/resources" + resourceName;
+    }
+    // Using System.out here for now to match existing pattern in App.java/StateService.java
+    // Consider replacing with SLF4J logger if standardizing logging.
+    System.out.printf("AppUtils.getResourceAsStream %s\n", resourceName);
+    // Use a class known to be in the same classloader context, e.g., AppUtils itself.
+    return AppUtils.class.getResourceAsStream(resourceName);
+  }
 }

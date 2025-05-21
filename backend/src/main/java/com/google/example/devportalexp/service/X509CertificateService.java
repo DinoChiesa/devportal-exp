@@ -78,22 +78,25 @@ public class X509CertificateService {
       // Find the certificate file name matching the pattern
       String certResourceName = AppUtils.findResourceNameByPattern("keys/issuer-certificate-*.pem");
       if (certResourceName == null) {
-          throw new IOException("Issuer certificate file not found for pattern keys/issuer-certificate-*.pem");
+        throw new IOException(
+            "Issuer certificate file not found for pattern keys/issuer-certificate-*.pem");
       }
       String certPemString =
           new String(
-              App.getResourceAsStream(certResourceName).readAllBytes(),
+              AppUtils.getResourceAsStream(certResourceName).readAllBytes(),
               StandardCharsets.UTF_8);
       issuerCertificate = KeyUtility.decodeCertificate(certPemString);
 
       // Find the private key file name matching the pattern
-      String privateKeyResourceName = AppUtils.findResourceNameByPattern("keys/issuer-rsa-private-key-*.pem");
-       if (privateKeyResourceName == null) {
-          throw new IOException("Issuer private key file not found for pattern keys/issuer-rsa-private-key-*.pem");
+      String privateKeyResourceName =
+          AppUtils.findResourceNameByPattern("keys/issuer-rsa-private-key-*.pem");
+      if (privateKeyResourceName == null) {
+        throw new IOException(
+            "Issuer private key file not found for pattern keys/issuer-rsa-private-key-*.pem");
       }
       String privateKeyPemString =
           new String(
-              App.getResourceAsStream(privateKeyResourceName).readAllBytes(),
+              AppUtils.getResourceAsStream(privateKeyResourceName).readAllBytes(),
               StandardCharsets.UTF_8);
       signingPrivateKey = KeyUtility.decodePrivateKey(privateKeyPemString, null).getPrivate();
     } catch (java.lang.Exception exc1) {

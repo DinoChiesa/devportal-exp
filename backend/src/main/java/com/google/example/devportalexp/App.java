@@ -69,19 +69,6 @@ public class App {
     }
   }
 
-  public static InputStream getResourceAsStream(String resourceName) {
-    // forcibly prepend a slash. not sure if necessary.
-    if (!resourceName.startsWith("/")) {
-      resourceName = "/" + resourceName;
-    }
-    if (!resourceName.startsWith("/resources")) {
-      resourceName = "/resources" + resourceName;
-    }
-    System.out.printf("getResourceAsStream %s\n", resourceName);
-    InputStream in = App.class.getResourceAsStream(resourceName);
-    return in;
-  }
-
   private static String getMimeType(final String resourcePath) {
     if (resourcePath.endsWith(".png")) return "image/png";
     if (resourcePath.endsWith(".webp")) return "image/webp";
@@ -134,14 +121,14 @@ public class App {
     String jarResourcePath = "/resources/web" + resourcePath;
     System.out.printf("Static request: %s -> %s\n", requestedPath, jarResourcePath);
 
-    InputStream s = getResourceAsStream(jarResourcePath); // Use the mapped path
+    InputStream s = AppUtils.getResourceAsStream(jarResourcePath); // Use the mapped path
     if (s == null) {
       // Important for SPA: If a resource isn't found, assume it's an Angular route
       // and serve index.html instead, letting Angular handle the routing.
       // Only do this for GET requests that likely expect HTML.
       if (ctx.method().equals(io.javalin.http.HandlerType.GET) && !requestedPath.contains(".")) {
         System.out.println("Assuming SPA route, serving index.html for: " + requestedPath);
-        InputStream indexStream = getResourceAsStream("/resources/web/index.html");
+        InputStream indexStream = AppUtils.getResourceAsStream("/resources/web/index.html");
         if (indexStream != null) {
           String indexContent = new String(indexStream.readAllBytes(), StandardCharsets.UTF_8);
           ctx.status(200);
