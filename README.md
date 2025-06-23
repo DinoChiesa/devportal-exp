@@ -143,7 +143,12 @@ Access it via the URL emitted by that command.
 
 ### Building and Deploying in one step
 
-I am not sure this works, but I think you might be able to
+**THIS WILL NOT WORK, AS IT IS.**
+
+It will require a cloudbuild.yaml file, which
+I havenot provided.
+
+If i did create one, it will be possible to
 use the gcloud command line tool to build and deploy in one step.
 
 
@@ -155,7 +160,7 @@ use the gcloud command line tool to build and deploy in one step.
    source ./env.sh
    ```
 
-2. Use gcloud to build an image, publish it to Artifact Registry, and dpeloy it:
+2. Use gcloud to build an image, publish it to Artifact Registry, and deploy it:
 
    ```bash
    gcloud run deploy devportal-exp \

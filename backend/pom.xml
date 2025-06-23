@@ -78,6 +78,7 @@
     <build>
       <plugins>
 
+      <plugin>
       <!--
           This plugin gets used with `mvn clean package jib:build` . You MUST
           run the package goal first.
@@ -91,7 +92,6 @@
           will do it.
        -->
 
-      <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
         <version>3.4.5</version>
