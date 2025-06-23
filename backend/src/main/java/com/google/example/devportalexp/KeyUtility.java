@@ -87,49 +87,49 @@ public class KeyUtility {
 
     JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
     privateKeyPemString = reformIndents(privateKeyPemString);
-    PEMParser pr = new PEMParser(new StringReader(privateKeyPemString));
-    Object o = pr.readObject();
+    try (PEMParser pr = new PEMParser(new StringReader(privateKeyPemString))) {
+      Object o = pr.readObject();
 
-    if (o instanceof PrivateKeyInfo) {
-      // eg, "openssl genpkey  -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -out keypair.pem"
-      PrivateKey privateKey = converter.getPrivateKey((PrivateKeyInfo) o);
-      return produceKeyPair(privateKey);
+      if (o instanceof PrivateKeyInfo) {
+        // eg, "openssl genpkey  -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -out keypair.pem"
+        PrivateKey privateKey = converter.getPrivateKey((PrivateKeyInfo) o);
+        return produceKeyPair(privateKey);
+      }
+
+      if (o instanceof PKCS8EncryptedPrivateKeyInfo) {
+        // produced by "openssl genpkey" or the series of commands reqd to sign an ec key
+        PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = (PKCS8EncryptedPrivateKeyInfo) o;
+        JceOpenSSLPKCS8DecryptorProviderBuilder decryptorProviderBuilder =
+            new JceOpenSSLPKCS8DecryptorProviderBuilder();
+        InputDecryptorProvider decryptorProvider =
+            decryptorProviderBuilder.build(password.toCharArray());
+        PrivateKeyInfo privateKeyInfo =
+            pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(decryptorProvider);
+        PrivateKey privateKey = converter.getPrivateKey(privateKeyInfo);
+        return produceKeyPair(privateKey);
+      }
+
+      if (o instanceof PEMEncryptedKeyPair) {
+        PEMDecryptorProvider decProv =
+            new JcePEMDecryptorProviderBuilder()
+                .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .build(password.toCharArray());
+        return converter.getKeyPair(((PEMEncryptedKeyPair) o).decryptKeyPair(decProv));
+      }
+
+      if (o instanceof PEMEncryptedKeyPair) {
+        // produced by "openssl genrsa" or "openssl ec -genkey"
+        PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) o;
+        PEMDecryptorProvider decryptorProvider =
+            new JcePEMDecryptorProviderBuilder().build(password.toCharArray());
+        return converter.getKeyPair(encryptedKeyPair.decryptKeyPair(decryptorProvider));
+      }
+
+      if (o instanceof PEMKeyPair) {
+        // eg, "openssl genrsa -out keypair-rsa-2048-unencrypted.pem 2048"
+        return converter.getKeyPair((PEMKeyPair) o);
+      }
     }
-
-    if (o instanceof PKCS8EncryptedPrivateKeyInfo) {
-      // produced by "openssl genpkey" or the series of commands reqd to sign an ec key
-      PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = (PKCS8EncryptedPrivateKeyInfo) o;
-      JceOpenSSLPKCS8DecryptorProviderBuilder decryptorProviderBuilder =
-          new JceOpenSSLPKCS8DecryptorProviderBuilder();
-      InputDecryptorProvider decryptorProvider =
-          decryptorProviderBuilder.build(password.toCharArray());
-      PrivateKeyInfo privateKeyInfo =
-          pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(decryptorProvider);
-      PrivateKey privateKey = converter.getPrivateKey(privateKeyInfo);
-      return produceKeyPair(privateKey);
-    }
-
-    if (o instanceof PEMEncryptedKeyPair) {
-      PEMDecryptorProvider decProv =
-          new JcePEMDecryptorProviderBuilder()
-              .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-              .build(password.toCharArray());
-      return converter.getKeyPair(((PEMEncryptedKeyPair) o).decryptKeyPair(decProv));
-    }
-
-    if (o instanceof PEMEncryptedKeyPair) {
-      // produced by "openssl genrsa" or "openssl ec -genkey"
-      PEMEncryptedKeyPair encryptedKeyPair = (PEMEncryptedKeyPair) o;
-      PEMDecryptorProvider decryptorProvider =
-          new JcePEMDecryptorProviderBuilder().build(password.toCharArray());
-      return converter.getKeyPair(encryptedKeyPair.decryptKeyPair(decryptorProvider));
-    }
-
-    if (o instanceof PEMKeyPair) {
-      // eg, "openssl genrsa -out keypair-rsa-2048-unencrypted.pem 2048"
-      return converter.getKeyPair((PEMKeyPair) o);
-    }
-
     throw new KeyParseException("unknown object type when decoding private key");
   }
 

@@ -15,7 +15,6 @@
 
 package com.google.example.devportalexp.service;
 
-import com.google.example.devportalexp.App;
 import com.google.example.devportalexp.AppUtils;
 import com.google.example.devportalexp.KeyUtility;
 import java.io.IOException;

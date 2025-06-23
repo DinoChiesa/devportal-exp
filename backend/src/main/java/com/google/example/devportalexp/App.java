@@ -22,8 +22,6 @@ import com.google.example.devportalexp.controller.AuthController;
 import com.google.example.devportalexp.security.JwtValidator;
 import com.google.example.devportalexp.security.SessionManager;
 import com.google.example.devportalexp.service.StateService;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
@@ -32,11 +30,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public class App {
 
-  private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+  //private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
   /**
    * Gets the port number from the PORT environment variable. Defaults to 7070 if the variable is
