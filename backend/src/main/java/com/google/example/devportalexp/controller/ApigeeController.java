@@ -64,8 +64,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ApigeeController {
-  public static final int MAX_CERTIFICATES = 4;
-  public static final int MAX_DEVELOPER_APPS = 4;
+  public static final int MAX_CERTIFICATES = 6;
+  public static final int MAX_DEVELOPER_APPS = 10;
   private static final int MAX_API_PRODUCTS_PER_APP = 5;
   private static final Logger log = LoggerFactory.getLogger(ApigeeController.class);
   private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -345,8 +345,7 @@ public class ApigeeController {
           if (lifetimeValue.isPresent()) {
             String timespanStr = lifetimeValue.get();
             log.info(
-                "Found 'max-key-lifetime' attribute for product {}: {}",
-                productName, timespanStr);
+                "Found 'max-key-lifetime' attribute for product {}: {}", productName, timespanStr);
             try {
               long currentProductExpirySeconds = parseTimespanToSeconds(timespanStr);
               log.info(
@@ -408,8 +407,7 @@ public class ApigeeController {
       Map<String, Object> payloadMap = (Map<String, Object>) ctx.bodyAsClass(Map.class);
       return payloadMap;
     } catch (Exception e) {
-      log.warn(
-          "Error parsing create app request body or extracting fields: {}", e.getMessage(), e);
+      log.warn("Error parsing create app request body or extracting fields: {}", e.getMessage(), e);
       ctx.status(400).json(Map.of("error", "Invalid JSON payload or structure"));
       return null;
     }
@@ -505,8 +503,7 @@ public class ApigeeController {
     long minExpirySeconds = minExpiryOptional.get();
     if (minExpirySeconds != -1) {
       log.info(
-          "Setting 'keyExpiresIn' in request payload to {} milliseconds.",
-          minExpirySeconds * 1000);
+          "Setting 'keyExpiresIn' in request payload to {} milliseconds.", minExpirySeconds * 1000);
       // Apigee expects keyExpiresIn in milliseconds
       payloadMap.put("keyExpiresIn", String.valueOf(minExpirySeconds * 1000));
     }

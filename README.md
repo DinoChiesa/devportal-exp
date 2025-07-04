@@ -146,9 +146,9 @@ Access it via the URL emitted by that command.
 **THIS WILL NOT WORK, AS IT IS.**
 
 It will require a cloudbuild.yaml file, which
-I havenot provided.
+I have not provided.
 
-If i did create one, it will be possible to
+If I did create one, it will be possible to
 use the gcloud command line tool to build and deploy in one step.
 
 

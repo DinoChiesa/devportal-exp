@@ -5,8 +5,8 @@
     <button
       class="button-add"
       (click)="toggleCreateForm()"
-      [disabled]="isLoading || developerApps.length >= 4"
-      title="{{ developerApps.length >= 4 ? 'Maximum number of apps reached' : 'Create New App' }}">
+      [disabled]="isLoading || developerApps.length >= 10"
+      title="{{ developerApps.length >= 10 ? 'Maximum number of apps reached' : 'Create New App' }}">
       +
     </button>
   </div>
