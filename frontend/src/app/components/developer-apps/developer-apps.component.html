@@ -19,7 +19,7 @@
       <input type="text" id="newAppName" [(ngModel)]="newAppName" placeholder="Enter a unique app name" required>
     </div>
     <div class="form-group">
-      <div class="product-filter-header"> <!-- New container -->
+      <div class="product-filter-header">
         <label>Select API Products:</label>
         <!-- Filter Input  -->
         <input
@@ -28,7 +28,7 @@
             class="filter-input"
             [(ngModel)]="apiProductFilter"
             (input)="applyFilter()"
-            placeholder="Filter..."> <!-- Shortened placeholder -->
+            placeholder="Filter...">
       </div>
       <ul class="product-select-list" *ngIf="filteredApiProducts.length > 0; else noFilteredApiProducts">
         <li *ngFor="let product of filteredApiProducts"> <!-- Iterate over filtered list -->

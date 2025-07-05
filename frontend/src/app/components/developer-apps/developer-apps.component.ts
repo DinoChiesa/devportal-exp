@@ -133,10 +133,11 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
 
   // Fetch available API products for the create form
   private loadAvailableProducts(): void {
+    
     this.apiService.getApiProducts().subscribe({
       next: (products) => {
         this.availableApiProducts = products;
-        this.filteredApiProducts = [...products]; // Initialize filtered list with all products
+        this.filteredApiProducts = [...products]; 
         // Initialize selection map
         this.selectedApiProducts.clear();
         products.forEach(p => this.selectedApiProducts.set(p.id, false));
