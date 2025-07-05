@@ -102,9 +102,10 @@
                     <span *ngIf="copiedNotification === 'key-' + cred.consumerKey" class="copy-notification">copied!</span>
                     <span
                       class="mat-icon"
+                      [class.copied]="copiedNotification === 'key-' + cred.consumerKey"
                       (click)="copyToClipboard(cred.consumerKey, 'key-' + cred.consumerKey)"
                       title="Copy apikey">
-                      content_copy
+                      {{ copiedNotification === 'key-' + cred.consumerKey ? 'check' : 'content_copy' }}
                     </span>
                   </div>
                 </div>
@@ -126,9 +127,10 @@
                     </span>
                     <span
                       class="mat-icon"
+                      [class.copied]="copiedNotification === 'secret-' + cred.consumerKey"
                       (click)="copyToClipboard(cred.consumerSecret, 'secret-' + cred.consumerKey)"
                       title="Copy secret">
-                      content_copy
+                      {{ copiedNotification === 'secret-' + cred.consumerKey ? 'check' : 'content_copy' }}
                     </span>
                   </div>
                 </div>
