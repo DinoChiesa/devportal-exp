@@ -262,7 +262,7 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
         if (this.copiedNotification === notificationId) {
           this.copiedNotification = null;
         }
-      }, 2700); // Hide after 2.7 seconds
+      }, 2200); // Hide after 2.2s (total lifetime including fade-out)
     }).catch(err => {
       console.error('Failed to copy dataItem: ', err);
       alert('Failed to copy dataItem. See console for details.');

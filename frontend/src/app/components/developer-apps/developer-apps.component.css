@@ -358,4 +358,11 @@
   white-space: nowrap;
   margin-right: 8px; /* Space between notification and icon */
   z-index: 10;
+  animation: fade-out-delayed 2.2s forwards;
+}
+
+@keyframes fade-out-delayed {
+  0%   { opacity: 1; }
+  82%  { opacity: 1; } /* Visible for ~1.8s of 2.2s total */
+  100% { opacity: 0; } /* Fade out for last 0.4s */
 }
