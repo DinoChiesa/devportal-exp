@@ -17,6 +17,14 @@ if [[ "${SERVICE_ACCOUNT}" == *"@"* ]]; then
   exit 1
 fi
 
+printf "This script will not work, as is. The build is a 2-step build, and I'd need to\n"
+printf "provide a cloudbuild.yaml file for this. And I haven't done so yet.\n\n"
+printf "To build and depoy on cloud run, ... \n"
+printf "   ./bimage.sh\n"
+printf "   ./cloudrun-deploy-prebuilt-image.sh\n\n"
+
+exit 1
+
 FULL_SA_EMAIL="${SERVICE_ACCOUNT}@${CLOUDRUN_PROJECT}.iam.gserviceaccount.com"
 
 gcloud run deploy devportal-exp \
