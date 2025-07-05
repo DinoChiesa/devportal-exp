@@ -60,8 +60,8 @@ public class CacheService {
     // Build the LoadingCache instance
     this.cache =
         Caffeine.newBuilder()
-            // Evict entries 15 minutes after they were last written (created or updated)
-            .expireAfterWrite(15, TimeUnit.MINUTES)
+            // Evict entries 3 minutes after they were last written (created or updated)
+            .expireAfterWrite(3, TimeUnit.MINUTES)
             // Optionally, set a maximum size
             .maximumSize(500)
             // Build the cache with the loader defined above
