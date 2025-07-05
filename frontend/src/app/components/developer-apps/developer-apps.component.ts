@@ -48,6 +48,7 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
 
   // Map to track visibility state of secrets [consumerKey -> isVisible]
   secretVisibility = new Map<string, boolean>();
+  copiedNotification: string | null = null;
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -249,13 +250,19 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
     this.secretVisibility.set(consumerKey, !currentState);
   }
 
-  copyToClipboard(dataItem: string | undefined): void {
+  copyToClipboard(dataItem: string | undefined, notificationId: string): void {
     if (!dataItem) {
       console.warn('Attempted to copy undefined dataItem.');
       return;
     }
     navigator.clipboard.writeText(dataItem).then(() => {
       console.log('dataItem copied to clipboard.');
+      this.copiedNotification = notificationId;
+      setTimeout(() => {
+        if (this.copiedNotification === notificationId) {
+          this.copiedNotification = null;
+        }
+      }, 2700); // Hide after 2.7 seconds
     }).catch(err => {
       console.error('Failed to copy dataItem: ', err);
       alert('Failed to copy dataItem. See console for details.');

@@ -99,9 +99,10 @@
                 <div class="credential-value">
                   <code class="credential-text-value">{{ cred.consumerKey }}</code>
                   <div class="credential-actions">
+                    <span *ngIf="copiedNotification === 'key-' + cred.consumerKey" class="copy-notification">copied!</span>
                     <span
                       class="mat-icon"
-                      (click)="copyToClipboard(cred.consumerKey)"
+                      (click)="copyToClipboard(cred.consumerKey, 'key-' + cred.consumerKey)"
                       title="Copy apikey">
                       content_copy
                     </span>
@@ -116,6 +117,7 @@
                     {{ isSecretVisible(cred.consumerKey) ? cred.consumerSecret : '••••••••••••••••••••••••' }}
                   </code>
                   <div class="credential-actions">
+                    <span *ngIf="copiedNotification === 'secret-' + cred.consumerKey" class="copy-notification">copied!</span>
                     <span
                       class="mat-icon"
                       (click)="toggleSecretVisibility(cred.consumerKey)"
@@ -124,7 +126,7 @@
                     </span>
                     <span
                       class="mat-icon"
-                      (click)="copyToClipboard(cred.consumerSecret)"
+                      (click)="copyToClipboard(cred.consumerSecret, 'secret-' + cred.consumerKey)"
                       title="Copy secret">
                       content_copy
                     </span>
