@@ -54,22 +54,20 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 public class X509CertificateService {
-  private static X509CertificateService instance;
-
+  private static final X509CertificateService instance;
   private static final String CERT_SIGNATURE_ALGORITHM = "SHA256withRSA";
+  private static final long CERTIFICATE_VALIDITY_SECONDS = 365L * 24 * 60 * 60; // 365 days
+
+  static {
+    java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    instance = new X509CertificateService();
+  }
 
   private PrivateKey signingPrivateKey;
   private X509Certificate issuerCertificate;
 
   public static X509CertificateService getInstance() {
-    if (instance == null) {
-      instance = new X509CertificateService();
-    }
     return instance;
-  }
-
-  static {
-    java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
   }
 
   private X509CertificateService() {
@@ -115,9 +113,7 @@ public class X509CertificateService {
           IOException {
     Instant now = Instant.now();
     Date notBefore = Date.from(now);
-    Date notAfter =
-        Date.from(
-            now.plusSeconds(AppUtils.daysInTheComingYear() * 24 * 60 * 60)); // Valid for one year
+    Date notAfter = Date.from(now.plusSeconds(CERTIFICATE_VALIDITY_SECONDS));
 
     BigInteger serialNumber = new BigInteger(160, new SecureRandom());
     X500Principal subject = new X500Principal(subjectDN);
@@ -185,17 +181,39 @@ public class X509CertificateService {
    */
   public static void enforceClientCertificateConstraints(X509Certificate certificate)
       throws IllegalArgumentException {
+    validateKeyUsage(certificate);
+    validateExpiry(certificate);
+    validateExtendedKeyUsage(certificate);
+    validateCryptoAlgorithm(certificate);
+    validateKeyStrength(certificate);
+    validateDigestAlgorithm(certificate);
+    validateNotSelfSigned(certificate);
+  }
+
+  private static void validateKeyUsage(X509Certificate certificate) {
+    // KeyUsage has the following definition:
+    //   digitalSignature        (0),
+    //   nonRepudiation          (1),
+    //   keyEncipherment         (2),
+    //   dataEncipherment        (3),
+    //   keyAgreement            (4),
+    //   keyCertSign             (5),
+    //   cRLSign                 (6),
+    //   encipherOnly            (7),
+    //   decipherOnly            (8)
+    final int keyCertSign = 5;
 
     // 1. not a CA
     boolean[] keyUsage = certificate.getKeyUsage();
-    if (keyUsage != null && keyUsage.length >= 6 && keyUsage[5]) {
+    if (keyUsage != null && keyUsage.length > keyCertSign && keyUsage[keyCertSign]) {
       throw new IllegalArgumentException(
           "the certificate must not be usable for certificate signing");
     }
+  }
 
-    // 2. expiry date
+  private static void validateExpiry(X509Certificate certificate) {
     // Here, do not call certificate.checkValidity(). It is possible the cert
-    // is not yet valid, which is ok. The devleoper may want to provision this
+    // is not yet valid, which is ok. The developer may want to provision this
     // cert for use in the future.
     Date expiryDate = certificate.getNotAfter();
     Date now = new Date();
@@ -203,7 +221,9 @@ public class X509CertificateService {
     if (isExpired) {
       throw new IllegalArgumentException("the certificate is expired");
     }
+  }
 
+  private static void validateExtendedKeyUsage(X509Certificate certificate) {
     // 3. clientAuth OID in eku
     List<String> ekuOIDs = null;
     try {
@@ -239,7 +259,9 @@ public class X509CertificateService {
               "the certificate includes a prohibited OID for Extended Key Usage (%s)",
               prohibitedOID.get()));
     }
+  }
 
+  private static void validateCryptoAlgorithm(X509Certificate certificate) {
     // 5. crypto alg
     PublicKey publicKey = certificate.getPublicKey();
     String algorithm = publicKey.getAlgorithm();
@@ -247,8 +269,11 @@ public class X509CertificateService {
       throw new IllegalArgumentException(
           String.format("the certificate uses an unsupported key type (%s)", algorithm));
     }
+  }
 
+  private static void validateKeyStrength(X509Certificate certificate) {
     // 6. key strength
+    PublicKey publicKey = certificate.getPublicKey();
     if (publicKey instanceof RSAPublicKey) {
       final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
       int keyStrength = rsaPublicKey.getModulus().bitLength();
@@ -270,7 +295,9 @@ public class X509CertificateService {
                 keyLength));
       }
     }
+  }
 
+  private static void validateDigestAlgorithm(X509Certificate certificate) {
     // 7. digest alg
     String sigAlgName = certificate.getSigAlgName();
     if (!sigAlgName.startsWith("SHA256")
@@ -280,7 +307,9 @@ public class X509CertificateService {
           String.format(
               "the certificate uses an unsupported signature algorithm name (%s)", sigAlgName));
     }
+  }
 
+  private static void validateNotSelfSigned(X509Certificate certificate) {
     // 8. not self-signed
     String subjectDN = certificate.getSubjectX500Principal().toString();
     String issuerDN = certificate.getIssuerX500Principal().toString();
