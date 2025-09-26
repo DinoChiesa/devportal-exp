@@ -25,7 +25,8 @@ integration/coverage
 
 # private files
 
-private-env.sh
+.env
+env-private.sh
 instructions.txt
 backend/src/main/resources/web
 backend/src/main/resources/keys/*.pem
