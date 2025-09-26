@@ -16,12 +16,12 @@
       <brotli.version>1.15.0</brotli.version>
       -->
       <slf4j.version>2.0.13</slf4j.version>
-      <bouncycastle.version>1.81</bouncycastle.version>
+      <bouncycastle.version>1.82</bouncycastle.version>
       <caffeine.version>3.2.2</caffeine.version>
       <!--
       <jackson.databind.version>2.19.0</jackson.databind.version>
       -->
-      <gson.version>2.13.1</gson.version>
+      <gson.version>2.13.2</gson.version>
       <java.jwt.version>4.5.0</java.jwt.version>
       <jwks.rsa.version>0.23.0</jwks.rsa.version>
       <gcp-project-name>${env.REPOSITORY_PROJECT}</gcp-project-name>
@@ -120,7 +120,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
+          <version>3.14.1</version>
           <configuration>
             <release>${target.for.java}</release>
             <compilerArgs>
@@ -134,7 +134,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
           <executions>
             <execution>
               <phase>package</phase>
@@ -195,7 +195,7 @@
        <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.18.0</version>
+        <version>2.19.1</version>
         <executions>
           <execution>
             <phase>compile</phase>

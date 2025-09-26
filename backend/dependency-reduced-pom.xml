@@ -13,13 +13,13 @@
         <configuration>
           <containerizingMode>packaged</containerizingMode>
           <to>
-            <image>gcr.io/${env.REPOSITORY_PROJECT}/cloud-builds-submit/devportal-exp-backend-container:20250411</image>
+            <image>gcr.io/dchiesa-argolis-2/cloud-builds-submit/devportal-exp-backend-container:20250411</image>
           </to>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.0</version>
+        <version>3.14.1</version>
         <configuration>
           <release>21</release>
           <compilerArgs>
@@ -30,7 +30,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.0</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -86,7 +86,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.18.0</version>
+        <version>2.19.1</version>
         <executions>
           <execution>
             <phase>compile</phase>
@@ -101,10 +101,10 @@
   </build>
   <properties>
     <gcp-project-name>${env.REPOSITORY_PROJECT}</gcp-project-name>
-    <bouncycastle.version>1.81</bouncycastle.version>
-    <target.for.java>21</target.for.java>
     <slf4j.version>2.0.13</slf4j.version>
-    <gson.version>2.13.1</gson.version>
+    <bouncycastle.version>1.82</bouncycastle.version>
+    <gson.version>2.13.2</gson.version>
+    <target.for.java>21</target.for.java>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javalin.version>6.7.0</javalin.version>
     <jwks.rsa.version>0.23.0</jwks.rsa.version>
