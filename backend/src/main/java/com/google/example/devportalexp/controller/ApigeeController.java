@@ -92,10 +92,16 @@ public class ApigeeController {
   private Object loadGcpAccessToken(String ignoredKey) {
     if (StateService.isRunningInCloud()) {
       log.info("Running in Cloud Run, fetching token from metadata server...");
-      String metadataUrl =
-          "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+      String metadataUrl = "/computeMetadata/v1/instance/service-accounts/default/token";
       try {
-        String responseBody = fetch(metadataUrl, "GET", Map.of("Metadata-Flavor", "Google"), null);
+        String responseBody =
+            fetch(
+                "http",
+                "GET",
+                "metadata.google.internal",
+                metadataUrl,
+                Map.of("Metadata-Flavor", "Google"),
+                null);
         if (responseBody != null) {
           Map<String, Object> tokenResponse = gson.fromJson(responseBody, mapType);
           if (tokenResponse != null && tokenResponse.containsKey("access_token")) {
@@ -121,11 +127,39 @@ public class ApigeeController {
   }
 
   private static String fetch(
-      String uri, String method, Map<String, String> requestHeaders, Map<String, Object> payload)
+      String method,
+      String host,
+      String uriPath,
+      Map<String, String> requestHeaders,
+      Map<String, Object> payload)
       throws URISyntaxException, IOException, InterruptedException {
-    log.debug("*** fetch [{} {}]...", method, uri);
+    return fetch("https", method, host, uriPath, requestHeaders, payload);
+  }
 
-    HttpRequest.Builder builder = HttpRequest.newBuilder().uri(new URI(uri));
+  private static String fetch(
+      String scheme,
+      String method,
+      String host,
+      String pathAndQuery,
+      Map<String, String> requestHeaders,
+      Map<String, Object> payload)
+      throws URISyntaxException, IOException, InterruptedException {
+    log.debug("*** fetch [{} https://{}{}]...", method, host, pathAndQuery);
+    final String userInfo = null;
+    final int port = -1;
+    String uriPath = pathAndQuery;
+    String query = "";
+
+    int ix = pathAndQuery.indexOf('?');
+    if (ix != -1) {
+      uriPath = pathAndQuery.substring(0, ix);
+      query = pathAndQuery.substring(ix + 1);
+    }
+    URI uri = new URI(scheme, userInfo, host, port, uriPath, query, null);
+
+    log.info("*** fetch uri {}", uri.toString());
+
+    HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri);
     if (requestHeaders != null) {
       for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
         builder.header(entry.getKey(), entry.getValue());
@@ -155,14 +189,19 @@ public class ApigeeController {
     return body;
   }
 
-  private Map<String, Object> apigeeFetch(String path, String method, Map<String, Object> payload)
+  private Map<String, Object> apigeeFetch(
+      String pathFragment, String method, Map<String, Object> payload)
       throws URISyntaxException, IOException, InterruptedException {
     String apigeeProject = (String) appSettings.get("project");
-    String uri =
-        String.format("https://apigee.googleapis.com/v1/organizations/%s%s", apigeeProject, path);
+    String uriPath = String.format("/v1/organizations/%s%s", apigeeProject, pathFragment);
     String apigeeOrgToken = (String) CacheService.getInstance().get("apigeetoken");
     String stringResult =
-        fetch(uri, method, Map.of("Authorization", "Bearer " + apigeeOrgToken), payload);
+        fetch(
+            method,
+            "apigee.googleapis.com",
+            uriPath,
+            Map.of("Authorization", "Bearer " + apigeeOrgToken),
+            payload);
     Map<String, Object> json = gson.fromJson(stringResult, mapType);
     return json;
   }
@@ -172,9 +211,9 @@ public class ApigeeController {
     return apigeeFetch(path, "GET", null);
   }
 
-  private Map<String, Object> apigeePost(String path, Map<String, Object> payload)
+  private Map<String, Object> apigeePost(String partialPath, Map<String, Object> payload)
       throws URISyntaxException, IOException, InterruptedException {
-    return apigeeFetch(path, "POST", payload);
+    return apigeeFetch(partialPath, "POST", payload);
   }
 
   private static String yamlSpecPath(String productName) {
