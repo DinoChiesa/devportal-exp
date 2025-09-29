@@ -147,10 +147,10 @@
         </div>
         <p *ngIf="!details?.certificates?.length">No certificates registered.</p>
         <ul class="certificate-list" *ngIf="details?.certificates?.length">
-          <li *ngFor="let cert of details.certificates">
+          <li *ngFor="let cert of details.certificates" [class.deleting]="deletingCerts.has(cert.id)">
             <span class="cert-id">{{ cert.id }}:</span>
             <span class="cert-fingerprint"><code>{{ cert.fingerprint }}</code></span>
-            <button class="button-delete" (click)="deleteCertificate(cert.id)" title="Delete Certificate {{cert.id}}">⨯</button>
+            <button class="button-delete" (click)="deleteCertificate(cert.id)" title="Delete Certificate {{cert.id}}" [disabled]="deletingCerts.has(cert.id)">⨯</button>
           </li>
         </ul>
       </div>

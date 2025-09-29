@@ -45,6 +45,7 @@ export class AccountDetailsComponent implements OnInit {
   selectedFile: File | null = null;
   uploadError: string | null = null;
   isUploading = false;
+  public deletingCerts = new Set<string>();
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -434,9 +435,11 @@ export class AccountDetailsComponent implements OnInit {
     // }
 
     console.log(`AccountDetailsComponent: Attempting to delete certificate ${certId}`);
-    // TODO: Add visual feedback for deletion in progress?
+    this.deletingCerts.add(certId);
 
-    this.apiService.deregisterCertificate(certId).subscribe({
+    this.apiService.deregisterCertificate(certId).pipe(
+      finalize(() => this.deletingCerts.delete(certId))
+    ).subscribe({
       next: () => {
         console.log(`Certificate ${certId} deleted successfully.`);
         // Update the local list instead of reloading everything
