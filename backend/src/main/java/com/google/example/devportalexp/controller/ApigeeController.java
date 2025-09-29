@@ -144,7 +144,6 @@ public class ApigeeController {
       Map<String, String> requestHeaders,
       Map<String, Object> payload)
       throws URISyntaxException, IOException, InterruptedException {
-    log.debug("*** fetch [{} https://{}{}]...", method, host, pathAndQuery);
     final String userInfo = null;
     final int port = -1;
     String uriPath = pathAndQuery;
@@ -155,9 +154,11 @@ public class ApigeeController {
       uriPath = pathAndQuery.substring(0, ix);
       query = pathAndQuery.substring(ix + 1);
     }
-    URI uri = new URI(scheme, userInfo, host, port, uriPath, query, null);
 
-    log.info("*** fetch uri {}", uri.toString());
+    // NB: use the 7-param URI ctor to get proper % encoding of the path
+    // segments containing spaces.
+    URI uri = new URI(scheme, userInfo, host, port, uriPath, query, null);
+    log.debug("*** fetch uri {}", uri.toString());
 
     HttpRequest.Builder builder = HttpRequest.newBuilder().uri(uri);
     if (requestHeaders != null) {
