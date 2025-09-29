@@ -370,3 +370,9 @@
   82%  { opacity: 1; } /* Visible for ~1.8s of 2.2s total */
   100% { opacity: 0; } /* Fade out for last 0.4s */
 }
+
+.app-item.deleting {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}

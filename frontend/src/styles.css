@@ -75,15 +75,15 @@ html {
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 2.2em;
+  font-size: 1.8em;
   padding: 0 5px;
-  line-height: 0.8; /* Adjust line height to better center the '⨯' */
+  line-height: 1.1; /* Adjust line height to better center the '⨯' */
   margin-left: auto; /* Push to the right if in a flex container */
   display: inline-flex; /* Helps with alignment */
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding-bottom: 3px;
+  padding-bottom: 1px;
 }
 
 .button-delete:disabled {

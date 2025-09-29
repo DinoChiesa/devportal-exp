@@ -68,7 +68,7 @@
     <!-- Show app list or 'no apps' message only when not loading and no error -->
     <div *ngIf="!isLoading && !errorLoading">
       <ul *ngIf="developerApps.length > 0; else noApps" class="app-list">
-        <li *ngFor="let app of developerApps" class="app-item">
+        <li *ngFor="let app of developerApps" class="app-item" [class.deleting]="deletingApps.has(app.name)">
           <div class="app-item-header">
             <!-- Check if it's a placeholder error object -->
             <h2 *ngIf="app.status !== 'Error'">{{ app.name }} <span *ngIf="app.status" class="app-status">({{ app.status }})</span></h2>
@@ -77,6 +77,7 @@
               *ngIf="app.status !== 'Error'"
               class="button-delete"
               (click)="deleteApp(app.name)"
+              [disabled]="deletingApps.has(app.name)"
               title="Delete App {{app.name}}">
               ⨯
             </button>

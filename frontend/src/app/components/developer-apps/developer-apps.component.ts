@@ -49,6 +49,7 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
   // Map to track visibility state of secrets [consumerKey -> isVisible]
   secretVisibility = new Map<string, boolean>();
   copiedNotification: string | null = null;
+  public deletingApps = new Set<string>();
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -251,9 +252,11 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
     // }
 
     console.log(`DeveloperAppsComponent: Attempting to delete app ${appName}`);
-    // TODO: Add visual feedback for deletion in progress? (e.g., disable button, show spinner on the item)
+    this.deletingApps.add(appName);
 
-    this.apiService.deleteDeveloperApp(appName).subscribe({
+    this.apiService.deleteDeveloperApp(appName).pipe(
+      finalize(() => this.deletingApps.delete(appName))
+    ).subscribe({
       next: () => {
         console.log(`App ${appName} deleted successfully.`);
         // Update the local list instead of reloading everything
