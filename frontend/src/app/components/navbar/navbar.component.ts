@@ -13,20 +13,33 @@
 // limitations under the License.
 //
 
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router'; // Import router directives
-import { AuthService } from '../../services/auth.service'; // Import AuthService
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive], // Add router directives
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.css']
+  styleUrls: ['./navbar.component.css'],
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   private authService = inject(AuthService);
+  private apiService = inject(ApiService);
   isMenuOpen = false; // State for dropdown visibility
+  versionInfo$: Observable<string | null> | undefined;
+
+  ngOnInit(): void {
+    this.versionInfo$ = this.apiService.getBuildInfo().pipe(
+      map((info) => `Build commit: ${info.commit} time: ${info.buildTime}`),
+      catchError(() => of(null)), // On error, don't display anything
+    );
+  }
 
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
@@ -36,5 +49,4 @@ export class NavbarComponent {
     this.authService.signOut();
     // No need to toggle menu here as it's done in the template click handler
   }
-
 }

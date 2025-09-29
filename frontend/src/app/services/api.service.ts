@@ -25,6 +25,7 @@ export class ApiService {
   // Cache for the main developer details
   private developerDetailsCache$: Observable<DeveloperDetails> | null = null;
   private developerDetailsCacheTimestamp: number | null = null;
+  private buildInfoCache$: Observable<any> | null = null;
   // --- End Cache ---
 
   constructor() { }
@@ -310,6 +311,20 @@ export class ApiService {
   clearAllCaches(): void {
     this.clearDeveloperAppsCache();
     this.clearDeveloperDetailsCache();
+  }
+
+  /**
+   * Fetches build information (git commit, etc.) from the backend.
+   * This is cached for the lifetime of the app since it will not change.
+   * @returns Observable<any>
+   */
+  getBuildInfo(): Observable<any> {
+    if (!this.buildInfoCache$) {
+      this.buildInfoCache$ = this.http.get<any>(`${this.apiUrl}/version`).pipe(
+        shareReplay({ bufferSize: 1, refCount: false }) // Cache forever
+      );
+    }
+    return this.buildInfoCache$;
   }
 
   // Add other API methods here (e.g., getProductById, createProduct, etc.)

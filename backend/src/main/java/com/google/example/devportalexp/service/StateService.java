@@ -18,14 +18,18 @@ package com.google.example.devportalexp.service;
 import com.google.example.devportalexp.AppUtils;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class StateService {
   private static StateService instance;
   private Map<String, Object> settings;
+  private Map<String, String> buildInfo;
 
   private static final Map<String, String> environmentVariables =
       Map.of("APIGEE_PROJECT", "project");
@@ -74,6 +78,30 @@ public class StateService {
                 settings.put(entry.getValue(), envVarValue);
               }
             });
+
+    // Load build info from git.properties
+    this.buildInfo = new HashMap<>();
+    try (InputStream input = StateService.class.getResourceAsStream("/git.properties")) {
+      Properties props = new Properties();
+      if (input == null) {
+        System.out.println("WARNING: git.properties not found. Build info will be unavailable.");
+        this.buildInfo.put("commit", "dev");
+        this.buildInfo.put("buildTime", "now");
+      } else {
+        props.load(input);
+        this.buildInfo.put("commit", props.getProperty("git.commit.id.abbrev", "unknown"));
+        this.buildInfo.put("buildTime", props.getProperty("git.build.time", "unknown"));
+      }
+    } catch (IOException ex) {
+      System.out.println("ERROR: Failed to load git.properties.");
+      ex.printStackTrace();
+      this.buildInfo.put("commit", "error");
+      this.buildInfo.put("buildTime", "error");
+    }
+  }
+
+  public Map<String, String> getBuildInfo() {
+    return this.buildInfo;
   }
 
   public static boolean isRunningInCloud() {

@@ -241,6 +241,8 @@ public class App {
                                         .status(404)
                                         .result("use a collection path"));
 
+                            get("/version", ctx -> ctx.json(StateService.getInstance().getBuildInfo()));
+
                             // get(
                             //     "/hello",
                             //     ctx -> ctx.json("{\"message\": \"Hello from Javalin
@@ -280,8 +282,9 @@ public class App {
       app.before(
           "/api/*", // Apply to all /api routes except /api/auth/**
           ctx -> {
-            // Allow auth routes to pass through
-            if (ctx.path().startsWith("/api/auth/")) {
+            String path = ctx.path();
+            // Allow auth and version routes to pass through
+            if (path.startsWith("/api/auth/") || path.equals("/api/version")) {
               return;
             }
             // Check for valid session

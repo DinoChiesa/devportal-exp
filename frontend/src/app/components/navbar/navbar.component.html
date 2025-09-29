@@ -17,7 +17,10 @@
     <div class="dropdown-menu" [class.show]="isMenuOpen">
       <a class="dropdown-item" routerLink="/dashboard" (click)="toggleMenu()">Dashboard</a>
       <a class="dropdown-item" (click)="logout(); toggleMenu()">Sign Out</a>
-      <!-- Add more menu items here if needed -->
+      <!-- Build Version Display -->
+      <div *ngIf="versionInfo$ | async as version" class="dropdown-item non-interactive">
+        {{ version }}
+      </div>
     </div>
   </div>
 </nav>
