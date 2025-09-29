@@ -16,7 +16,7 @@
     <h2>Create New Developer App</h2>
     <div class="form-group">
       <label for="newAppName">App Name:</label>
-      <input type="text" id="newAppName" [(ngModel)]="newAppName" placeholder="Enter a unique app name" required>
+      <input type="text" id="newAppName" [(ngModel)]="newAppName" (focus)="suggestAppName()" placeholder="Enter a unique app name" required>
     </div>
     <div class="form-group">
       <div class="product-filter-header">

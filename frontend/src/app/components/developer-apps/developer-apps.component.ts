@@ -199,6 +199,31 @@ export class DeveloperAppsComponent implements OnInit, OnDestroy { // Implement 
     });
   }
 
+  // Suggest a new app name on focus if the field is empty
+  suggestAppName(): void {
+    if (this.newAppName.trim() !== '') {
+      return; // Do not overwrite if user is typing or has pasted content
+    }
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const dateString = `${year}${month}${day}`;
+    const baseName = `App-${dateString}-`;
+
+    const existingAppNames = new Set(this.developerApps.map(app => app.name));
+
+    for (let i = 0; i < 26; i++) {
+      const letter = String.fromCharCode('a'.charCodeAt(0) + i);
+      const suggestedName = `${baseName}${letter}`;
+      if (!existingAppNames.has(suggestedName)) {
+        this.newAppName = suggestedName;
+        return; // Found a unique name, exit.
+      }
+    }
+  }
+
   // Apply filter to the API product list
   applyFilter(): void {
     const filterValue = this.apiProductFilter.toLowerCase();
