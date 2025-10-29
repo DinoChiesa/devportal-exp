@@ -55,7 +55,7 @@ npm run build
 
 Alternatively, there is a helper script which avoids the need to `cd`:
 ```
-./bfront.sh
+./1-bfront.sh
 ```
 
 If the build is successfuly, a post build step will copy the produced files into the backend src directory.
@@ -81,7 +81,7 @@ Start from the main directory.
 
    Alternatively, there is a helper script which avoids the need to `cd`:
    ```sh
-   ./bback.sh
+   ./2-bback.sh
    ```
 
 2. run locally
@@ -110,7 +110,7 @@ After the service starts, access it at: http://localhost:7070/ .
 
    You can do the same with the helper script:
    ```sh
-   ./bimage.sh
+   ./3-bimage.sh
    ```
 
    In the output from the build, observe the output URL for the image.  It will look like:
@@ -139,45 +139,12 @@ After the service starts, access it at: http://localhost:7070/ .
      --timeout 300
    ```
 
-Access it via the URL emitted by that command.
+   Access it via the URL emitted by that command.
 
-### Building and Deploying in one step
-
-**THIS WILL NOT WORK, AS IT IS.**
-
-It will require a cloudbuild.yaml file, which
-I have not provided.
-
-If I did create one, it will be possible to
-use the gcloud command line tool to build and deploy in one step.
-
-
-0. Again, set your environment.  Open the [env.sh](./env.sh) file in an editor, and apply the
-   settings as appropriate for yoru environment. Save the file.
-
-1. Open a terminal session. Source your environment file:
-   ```bash
-   source ./env.sh
+   Again, there is a shortcut script: 
+   ```sh
+   ./4-deploy-prebuilt-image-to-cloudrun.sh
    ```
-
-2. Use gcloud to build an image, publish it to Artifact Registry, and deploy it:
-
-   ```bash
-   gcloud run deploy devportal-exp \
-     --source . \
-     --cpu 1 \
-     --set-env-vars "APIGEE_PROJECT=${APIGEE_PROJECT}" \
-     --memory '512Mi' \
-     --min-instances 0 \
-     --max-instances 1 \
-     --allow-unauthenticated \
-     --service-account ${SERVICE_ACCOUNT} \
-     --project ${CLOUDRUN_PROJECT} \
-     --region ${CLOUDRUN_REGION} \
-     --timeout 300
-   ```
-
-And again, access it via the URL emitted by that command.
 
 ## License
 
