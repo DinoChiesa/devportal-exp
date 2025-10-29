@@ -618,7 +618,8 @@ public class ApigeeController {
         devDetails.put("attribute", Collections.emptyList());
         devDetails.put("certificates", Collections.emptyList());
       } else {
-        Map<Boolean, List<Map<String, Object>>> partitionedMap = partitionByCert(attrList);
+        Map<Boolean, List<Map<String, Object>>> partitionedMap =
+            partitionByCertFingerprint(attrList);
         List<Map<String, Object>> otherAttrs =
             partitionedMap.getOrDefault(false, Collections.emptyList());
         devDetails.put("attribute", otherAttrs);
@@ -643,13 +644,15 @@ public class ApigeeController {
     }
   }
 
-  private static Map<Boolean, List<Map<String, Object>>> partitionByCert(
+  private static Map<Boolean, List<Map<String, Object>>> partitionByCertFingerprint(
       List<Map<String, Object>> attrList) {
     Predicate<Map<String, Object>> startsWithCert =
         mapEntry -> {
           if (mapEntry == null) return false;
           Object nameValue = mapEntry.get("name");
-          return nameValue instanceof String && ((String) nameValue).startsWith("cert-");
+          return nameValue instanceof String
+              && ((String) nameValue).startsWith("cert-")
+              && ((String) nameValue).endsWith("-fingerprint");
         };
 
     // Use Collectors.partitioningBy to split the stream into two lists based on the predicate
@@ -929,27 +932,32 @@ public class ApigeeController {
   private Optional<String> updateDeveloperAttributesWithCertificate(
       Context ctx,
       String devEmail,
-      X509Certificate certificate,
+      ProcessedCertificate processedCert,
+      // X509Certificate certificate,
+      // String certificatePem,
       List<Map<String, Object>> currentAttributes)
       throws IOException, InterruptedException, URISyntaxException {
     try {
-      String fingerprint = KeyUtility.fingerprintBase64(certificate);
+      String fingerprint = KeyUtility.fingerprintBase64(processedCert.certificate());
       // The verifyFingerprintUniqueness method throws IllegalArgumentException if duplicate
       verifyFingerprintUniqueness(fingerprint, currentAttributes);
 
-      String newCertificateIdentifier = String.format("cert-%s", nowAsYyyyMmDdHHmmss());
+      String nowId = nowAsYyyyMmDdHHmmss();
+      String fingerprintIdentifier = String.format("cert-%s-fingerprint", nowId);
+      String pemIdentifier = String.format("cert-%s-pem", nowId);
 
       // Create a mutable list for attributes if it's not already or make a copy
       List<Map<String, Object>> updatedAttributes = new ArrayList<>(currentAttributes);
-      updatedAttributes.add(Map.of("name", newCertificateIdentifier, "value", fingerprint));
+      updatedAttributes.add(Map.of("name", fingerprintIdentifier, "value", fingerprint));
+      updatedAttributes.add(Map.of("name", pemIdentifier, "value", processedCert.pem()));
 
       String attributesUri = String.format("/developers/%s/attributes", devEmail);
       apigeePost(attributesUri, Map.of("attribute", updatedAttributes));
       log.info(
           "Successfully updated developer attributes for {} with new certificate ID: {}",
           devEmail,
-          newCertificateIdentifier);
-      return Optional.of(newCertificateIdentifier);
+          fingerprintIdentifier);
+      return Optional.of(fingerprintIdentifier);
     } catch (IllegalArgumentException e) { // Specifically for fingerprint uniqueness
       log.warn("Failed to update developer attributes for {}: {}", devEmail, e.getMessage());
       ctx.status(400).json(Map.of("error", e.getMessage()));
@@ -1020,8 +1028,7 @@ public class ApigeeController {
     }
 
     Optional<String> newCertIdOptional =
-        updateDeveloperAttributesWithCertificate(
-            ctx, devEmail, processedCert.certificate(), freshDevAttrs);
+        updateDeveloperAttributesWithCertificate(ctx, devEmail, processedCert, freshDevAttrs);
     if (newCertIdOptional.isEmpty()) {
       return; // Error handled in helper
     }
@@ -1110,13 +1117,16 @@ public class ApigeeController {
         return;
       }
 
+      String pemId = certId.replace("fingerprint", "pem");
       List<Map<String, Object>> attrsToKeep =
           attrList.stream()
               .filter(
                   mapEntry -> {
                     if (mapEntry == null) return false;
                     Object nameValue = mapEntry.get("name");
-                    return nameValue instanceof String && !(((String) nameValue).equals(certId));
+                    return nameValue instanceof String
+                        && !(((String) nameValue).equals(certId)
+                            || ((String) nameValue).equals(pemId));
                   })
               .collect(Collectors.toList());
 
