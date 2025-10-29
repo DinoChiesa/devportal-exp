@@ -1,6 +1,6 @@
 # Demonstration Developer Portal
 
-This repo has a demonstration custom Apigee Developer Portal that is designed to run in Google Cloud Run.
+This is a custom Apigee Developer Portal that is designed to run in Google Cloud Run.
 
 * The backend is built on Java21, and [javalin](https://javalin.io/).  It uses
   maven for the build. You can use Java24 as well.
@@ -12,6 +12,41 @@ This repo has a demonstration custom Apigee Developer Portal that is designed to
 ## Disclaimer
 
 This example is not an official Google product, nor is it part of an official Google product.
+
+## Current Status
+
+This is for demonstration, exploration, and illustration. It is not expected to
+be practically usable in production, without modification and extension.
+
+### Features
+
+- Firebase Authn / Google Identity Sign-in for developers
+
+- Presents the list of Apigee apps registered for a developer, and credentials for same.
+
+- Allows user to add an app and generate new client credentials, choosing among
+  the available API products.
+
+- Allows user to remove a registered app from their account.
+
+- Allows user to generate and register RSA keypairs to their accounts,
+  potentially supporting JWT bearer token grants.
+
+- Views/peruses the list of API products available.
+
+- Runs in Google Cloud Run
+
+
+### Limitations
+
+- No support for sign-in mechanisms other than Firebase.  Eg, it does not
+  support bringing your own OIDC provider.
+- No support for viewing API analytics.
+- No support for rendering OpenAPI Specs for API products
+- No support for Teams-owned developer apps
+- No support for "skinning" or styling the portal without re-compiling
+- I'm sure there are many others
+
 
 ## Building and Running
 
