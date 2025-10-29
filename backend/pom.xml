@@ -210,6 +210,12 @@
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
+        <!--
+           There is a reason I want to use the old version of this plugin.
+           But I forgot to write it down.  I think a version compatibility
+           issue perhaps?
+        -->
+
         <version>7.0.0</version>
         <executions>
           <execution>
