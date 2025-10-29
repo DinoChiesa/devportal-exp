@@ -144,13 +144,16 @@
       >
         <h3>Attributes</h3>
         <ul class="attribute-list">
-          <!-- AI! Modify this to filter the attributes so that the list
-          displays only those attributes for which attr.name does not start with
-          "cert-" , and does not end with "-pem" .  -->
-          <li *ngFor="let attr of details.attribute">
-            <span class="attr-name">{{ attr.name }}:</span>
-            <span class="attr-value">{{ attr.value }}</span>
-          </li>
+          <ng-container *ngFor="let attr of details.attribute">
+            <li
+              *ngIf="
+                !attr.name.startsWith('cert-') && !attr.name.endsWith('-pem')
+              "
+            >
+              <span class="attr-name">{{ attr.name }}:</span>
+              <span class="attr-value">{{ attr.value }}</span>
+            </li>
+          </ng-container>
         </ul>
       </div>
       <div
