@@ -15,16 +15,33 @@
     <!--
         <brotli.version>1.15.0</brotli.version>
     -->
-    <slf4j.version>2.0.13</slf4j.version>
-    <bouncycastle.version>1.82</bouncycastle.version>
-    <caffeine.version>3.2.2</caffeine.version>
+    <slf4j.version>2.0.17</slf4j.version>
+    <bouncycastle.version>1.83</bouncycastle.version>
+    <caffeine.version>3.2.3</caffeine.version>
     <!--
         <jackson.databind.version>2.19.0</jackson.databind.version>
     -->
     <gson.version>2.13.2</gson.version>
     <java.jwt.version>4.5.0</java.jwt.version>
     <jwks.rsa.version>0.23.0</jwks.rsa.version>
+    <jib.plugin.version>3.5.1</jib.plugin.version>
+
+    <!-- plugins -->
+    <enforcer.plugin.version>3.6.2</enforcer.plugin.version>
+    <resources.plugin.version>3.4.0</resources.plugin.version>
+    <versions.plugin.version>2.20.1</versions.plugin.version>
+    <compiler.plugin.version>3.14.1</compiler.plugin.version>
+    <shade.plugin.version>3.6.1</shade.plugin.version>
+    <!--
+        There is a reason I explicitly want to use v7.0.0, which is an old
+        version of this plugin.  But I forgot to write down the reason.  I think
+        there is a version compatibility issue perhaps.
+    -->
+    <commitid.plugin.version>7.0.0</commitid.plugin.version>
+
+
     <gcp-project-name>${env.REPOSITORY_PROJECT}</gcp-project-name>
+
   </properties>
 
   <dependencies>
@@ -98,7 +115,7 @@
 
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.4.6</version>
+        <version>${jib.plugin.version}</version>
         <configuration>
           <containerizingMode>packaged</containerizingMode>
           <to>
@@ -120,7 +137,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.1</version>
+        <version>${compiler.plugin.version}</version>
         <configuration>
           <release>${target.for.java}</release>
           <compilerArgs>
@@ -134,7 +151,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>${shade.plugin.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -165,7 +182,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.1</version>
+        <version>${resources.plugin.version}</version>
         <configuration>
           <!-- this says to put the resources in a subdir within the jar -->
           <outputDirectory>${project.build.outputDirectory}/resources</outputDirectory>
@@ -174,7 +191,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>${enforcer.plugin.version}</version>
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -195,7 +212,42 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.19.1</version>
+        <version>${versions.plugin.version}</version>
+        <configuration>
+          <!-- https://github.com/mojohaus/versions/issues/1323 -->
+              <!--
+              This does not do what I hoped it would do.
+              -->
+              <pluginDependencyExcludes>io.github.git-commit-id:git-commit-id-maven-plugin</pluginDependencyExcludes>
+              <ruleSet>
+                <ignoreVersions>
+                  <ignoreVersion>
+                    <type>regex</type>
+                    <version>.+-alpha.*</version>
+                  </ignoreVersion>
+                  <ignoreVersion>
+                    <type>regex</type>
+                    <version>.+-beta.*</version>
+                  </ignoreVersion>
+                </ignoreVersions>
+
+                <!-- This form is used in the documentation, but it does not
+                     work for my build plugin. I think it might just be not
+                     implemented in the mojo. -->
+                <rules>
+                  <rule>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <ignoreVersions>
+                      <ignoreVersion>
+                        <version>7.0.0</version>
+                      </ignoreVersion>
+                    </ignoreVersions>
+                  </rule>
+                </rules>
+
+              </ruleSet>
+            </configuration>
         <executions>
           <execution>
             <phase>compile</phase>
@@ -210,13 +262,7 @@
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
-        <!--
-           There is a reason I want to use the old version of this plugin.
-           But I forgot to write it down.  I think a version compatibility
-           issue perhaps?
-        -->
-
-        <version>7.0.0</version>
+        <version>${commitid.plugin.version}</version>
         <executions>
           <execution>
             <id>get-the-git-infos</id>

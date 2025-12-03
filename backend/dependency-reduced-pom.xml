@@ -9,7 +9,7 @@
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.1</version>
         <configuration>
           <containerizingMode>packaged</containerizingMode>
           <to>
@@ -59,14 +59,14 @@
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.1</version>
+        <version>3.4.0</version>
         <configuration>
           <outputDirectory>${project.build.outputDirectory}/resources</outputDirectory>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.6.2</version>
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -86,7 +86,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.19.1</version>
+        <version>2.20.1</version>
         <executions>
           <execution>
             <phase>compile</phase>
@@ -96,6 +96,32 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <pluginDependencyExcludes>io.github.git-commit-id:git-commit-id-maven-plugin</pluginDependencyExcludes>
+          <ruleSet>
+            <ignoreVersions>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>.+-alpha.*</version>
+              </ignoreVersion>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>.+-beta.*</version>
+              </ignoreVersion>
+            </ignoreVersions>
+            <rules>
+              <rule>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <ignoreVersions>
+                  <ignoreVersion>
+                    <version>7.0.0</version>
+                  </ignoreVersion>
+                </ignoreVersions>
+              </rule>
+            </rules>
+          </ruleSet>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
@@ -122,15 +148,22 @@
     </plugins>
   </build>
   <properties>
+    <commitid.plugin.version>7.0.0</commitid.plugin.version>
     <gcp-project-name>${env.REPOSITORY_PROJECT}</gcp-project-name>
-    <slf4j.version>2.0.13</slf4j.version>
-    <bouncycastle.version>1.82</bouncycastle.version>
-    <gson.version>2.13.2</gson.version>
+    <bouncycastle.version>1.83</bouncycastle.version>
+    <jib.plugin.version>3.5.1</jib.plugin.version>
+    <shade.plugin.version>3.6.1</shade.plugin.version>
     <target.for.java>21</target.for.java>
+    <versions.plugin.version>2.20.1</versions.plugin.version>
+    <compiler.plugin.version>3.14.1</compiler.plugin.version>
+    <enforcer.plugin.version>3.6.2</enforcer.plugin.version>
+    <resources.plugin.version>3.4.0</resources.plugin.version>
+    <slf4j.version>2.0.17</slf4j.version>
+    <gson.version>2.13.2</gson.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javalin.version>6.7.0</javalin.version>
     <jwks.rsa.version>0.23.0</jwks.rsa.version>
     <java.jwt.version>4.5.0</java.jwt.version>
-    <caffeine.version>3.2.2</caffeine.version>
+    <caffeine.version>3.2.3</caffeine.version>
   </properties>
 </project>
