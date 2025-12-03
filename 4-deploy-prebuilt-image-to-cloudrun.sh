@@ -1,17 +1,13 @@
 #!/bin/bash
 # -*- mode: shell-script; sh-shell: bash; coding: utf-8 -*-
 
-env_vars_to_check=(
-  "CLOUDRUN_PROJECT"
-  "CLOUDRUN_REGION"
-  "REPOSITORY_PROJECT"
-  "APIGEE_PROJECT"
-  "SERVICE_ACCOUNT"
-)
+source ./shlib/utils.sh
 
-source ./lib/utils.sh
-
-check_shell_variables "${env_vars_to_check[@]}"
+check_shell_variables CLOUDRUN_PROJECT \
+  CLOUDRUN_REGION \
+  REPOSITORY_PROJECT \
+  APIGEE_PROJECT \
+  SERVICE_ACCOUNT
 
 if [[ "${SERVICE_ACCOUNT}" == *"@"* ]]; then
   printf "The SERVICE_ACCOUNT variable should not contain an @ character.\n"

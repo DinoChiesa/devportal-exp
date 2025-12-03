@@ -8,7 +8,7 @@ env_vars_to_check=(
   "SERVICE_ACCOUNT"
 )
 
-source ./lib/utils.sh
+source ./shlib/utils.sh
 
 check_shell_variables "${env_vars_to_check[@]}"
 

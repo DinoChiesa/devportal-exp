@@ -29,8 +29,16 @@ check_shell_variables() {
   }
 
   printf "Settings in use:\n"
-  for var_name in "${env_vars_to_check[@]}"; do
-    printf "  %s=%s\n" "$var_name" "${!var_name}"
+  for var_name in "$@"; do
+    if [[ "$var_name" == *_APIKEY || "$var_name" == *_API_KEY || "$var_name" == *_SECRET || "$var_name" == *_CLIENT_ID ]]; then
+      local value="${!var_name}"
+      local dots
+      dots=$(printf '%*s' "${#value}" '' | tr ' ' '.')
+      printf "  %s=%s\n" "$var_name" "${value:0:4}${dots}"
+    else
+      printf "  %s=%s\n" "$var_name" "${!var_name}"
+    fi
   done
+
 }
 

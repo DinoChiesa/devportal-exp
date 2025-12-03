@@ -23,7 +23,7 @@ env_vars_to_check=(
   "APIGEE_PROJECT"
 )
 
-source ./lib/utils.sh
+source ./shlib/utils.sh
 
 check_and_maybe_create_sa() {
   local ROLE AVAILABLE_ROLES

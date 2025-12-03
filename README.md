@@ -176,7 +176,7 @@ After the service starts, access it at: http://localhost:7070/ .
 
    Access it via the URL emitted by that command.
 
-   Again, there is a shortcut script: 
+   Again, there is a shortcut script:
    ```sh
    ./4-deploy-prebuilt-image-to-cloudrun.sh
    ```
