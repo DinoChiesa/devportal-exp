@@ -214,40 +214,34 @@
         <artifactId>versions-maven-plugin</artifactId>
         <version>${versions.plugin.version}</version>
         <configuration>
-          <!-- https://github.com/mojohaus/versions/issues/1323 -->
-              <!--
-              This does not do what I hoped it would do.
-              -->
-              <pluginDependencyExcludes>io.github.git-commit-id:git-commit-id-maven-plugin</pluginDependencyExcludes>
-              <ruleSet>
+          <ruleSet>
+            <!-- exclude notification about alpha and beta versions of plugins and etc -->
+            <ignoreVersions>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>.+-alpha.*</version>
+              </ignoreVersion>
+              <ignoreVersion>
+                <type>regex</type>
+                <version>.+-beta.*</version>
+              </ignoreVersion>
+            </ignoreVersions>
+
+            <!-- exclude notifcation of ANY updates for this particular artifact. -->
+            <rules>
+              <rule>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
                 <ignoreVersions>
                   <ignoreVersion>
                     <type>regex</type>
-                    <version>.+-alpha.*</version>
-                  </ignoreVersion>
-                  <ignoreVersion>
-                    <type>regex</type>
-                    <version>.+-beta.*</version>
+                    <version>.*</version>
                   </ignoreVersion>
                 </ignoreVersions>
-
-                <!-- This form is used in the documentation, but it does not
-                     work for my build plugin. I think it might just be not
-                     implemented in the mojo. -->
-                <rules>
-                  <rule>
-                    <groupId>io.github.git-commit-id</groupId>
-                    <artifactId>git-commit-id-maven-plugin</artifactId>
-                    <ignoreVersions>
-                      <ignoreVersion>
-                        <version>7.0.0</version>
-                      </ignoreVersion>
-                    </ignoreVersions>
-                  </rule>
-                </rules>
-
-              </ruleSet>
-            </configuration>
+              </rule>
+            </rules>
+          </ruleSet>
+        </configuration>
         <executions>
           <execution>
             <phase>compile</phase>
